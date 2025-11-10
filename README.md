@@ -173,5 +173,14 @@ streamlit run frontend/app.py
 🧾 5. Project Summary
 
 Backend (Brain) - FastAPI handles all AI/ML logic
+
 Frontend (Face) - Streamlit serves as a simple test client
+
 AI Model - Ollama (Mistral) powers the intelligence layer
+
+**Featues to add:**
+1. Proper Frontend 
+2. Technical interview part 
+3. Have to connect db to store some video clips
+4. Have to debug some bugs
+5. More enhancement 
