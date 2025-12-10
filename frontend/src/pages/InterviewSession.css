@@ -1,103 +1,129 @@
-/* =========================================
-   INTERVIEW SESSION.CSS
-   Studio Monitor Look
-   ========================================= */
-
-.session-root {
-  min-height: 80vh;
+.session-container {
+  min-height: 100vh;
+  background-color: #050505;
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  color: white;
+  font-family: 'Inter', sans-serif;
 }
 
-.session-header {
-  margin-bottom: 3rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 1rem;
+.preview-card {
+  background: #111;
+  border: 1px solid #333;
+  padding: 2rem;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
 }
 
-.session-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 3rem;
+.preview-title {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
 }
 
-@media (max-width: 900px) {
-  .session-grid { grid-template-columns: 1fr; }
+.preview-sub {
+  color: #888;
+  margin-bottom: 2rem;
 }
 
-/* Video Frame */
-.video-frame {
-  background: black;
-  border: 1px solid rgba(255,255,255,0.2);
-  aspect-ratio: 16/9;
+.video-wrapper {
   position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 12px;
   overflow: hidden;
+  margin-bottom: 2rem;
+  border: 1px solid #222;
 }
 
-.mirror-feed {
+.live-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scaleX(-1);
+  transform: scaleX(-1); /* Mirror effect */
 }
 
-.video-overlay {
+.controls-overlay {
   position: absolute;
-  top: 1rem; left: 1rem;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  background: rgba(0,0,0,0.6);
+  padding: 10px 20px;
+  border-radius: 30px;
+  backdrop-filter: blur(5px);
 }
 
-.status-indicator {
+.control-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(0,0,0,0.6);
-  padding: 6px 12px;
-  border: 1px solid rgba(255,255,255,0.2);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: white;
-}
-
-.status-indicator.ready { color: #10b981; border-color: #10b981; }
-.status-indicator.error { color: #ef4444; border-color: #ef4444; }
-
-/* Controls */
-.session-controls {
-  display: flex;
-  flex-direction: column;
   justify-content: center;
 }
 
-.check-list {
-  list-style: none;
-  padding: 0;
-  margin: 2rem 0;
+.control-btn:hover {
+  background: rgba(255,255,255,0.2);
 }
 
-.check-list li {
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  font-size: 0.8rem;
-  color: #aaa;
-  letter-spacing: 1px;
+.control-btn.off {
+  color: #ef4444; /* Red when off */
+  background: rgba(239, 68, 68, 0.1);
 }
 
-.audio-meter-bar {
-  height: 2px;
-  background: rgba(255,255,255,0.1);
-  margin-bottom: 2rem;
-  overflow: hidden;
+.btn-start-interview {
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 1rem 2rem;
+  font-weight: 800;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  transition: transform 0.2s;
 }
 
-.meter-fill {
-  height: 100%;
-  width: 60%;
-  background: #10b981;
-  animation: pulseMeter 0.5s infinite alternate;
+.btn-start-interview:hover {
+  transform: translateY(-2px);
+  background: #f0f0f0;
 }
 
-@keyframes pulseMeter {
-  0% { width: 40%; }
-  100% { width: 70%; }
+.btn-loading {
+  background: #333;
+  color: #666;
+  border: none;
+  padding: 1rem 2rem;
+  width: 100%;
+  border-radius: 8px;
+  cursor: wait;
+}
+
+.error-state {
+  text-align: center;
+  padding: 2rem;
+}
+
+.btn-retry {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: #333;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }

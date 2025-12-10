@@ -1,230 +1,271 @@
-/* =========================================
-   INTERVIEW SETUP.CSS
-   Editorial / Monochrome Design
-   ========================================= */
-
+/* Container Layout */
 .setup-root {
-  display: flex;
-  flex-direction: column;
-  gap: 4rem;
-  min-height: 80vh;
-  justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    min-height: 100vh;
+    background-color: #050505;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
 }
 
-@media (min-width: 1024px) {
-  .setup-root {
-    flex-direction: row;
-    align-items: flex-start;
-    padding-top: 4rem;
-  }
-}
-
-/* --- Left Column: Visual --- */
 .setup-visual {
-  flex: 1;
-  max-width: 450px;
-  position: sticky;
-  top: 120px;
+    flex: 1;
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 1px solid #222;
 }
 
-.visual-header {
-  margin-bottom: 3rem;
+.setup-form-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: #0a0a0a;
+}
+
+/* Visual Side Typography */
+.text-mono {
+    font-family: 'Courier New', monospace;
+    color: #666;
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 1rem;
 }
 
 .visual-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  line-height: 0.9;
-  letter-spacing: -2px;
-  margin-top: 1rem;
-  color: white;
-}
-
-.text-mono {
-  font-family: var(--font-mono, monospace);
-  color: #666;
-  font-size: 0.8rem;
-  letter-spacing: 1px;
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -2px;
+    background: linear-gradient(to bottom right, #fff, #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 3rem;
 }
 
 /* Context Widget */
 .context-widget {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1.5rem;
-  display: flex;
-  gap: 1.5rem;
-  transition: all 0.3s ease;
-  background: transparent;
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #111;
+    max-width: 400px;
+    transition: all 0.3s ease;
 }
 
 .context-widget.active {
-  border-color: white;
-  background: rgba(255, 255, 255, 0.02);
+    border-color: #22c55e; /* Green border when active */
+    background: rgba(34, 197, 94, 0.05);
 }
 
 .widget-icon {
-  color: #666;
-  display: flex;
-  align-items: flex-start;
-  padding-top: 2px;
+    color: #666;
 }
 
 .context-widget.active .widget-icon {
-  color: white;
+    color: #22c55e;
 }
 
 .widget-title {
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  margin-bottom: 0.5rem;
-  color: white;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+    color: #fff;
 }
 
 .widget-desc {
-  font-size: 0.85rem;
-  color: #888;
-  line-height: 1.5;
-  margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: #888;
+    line-height: 1.5;
+    margin-bottom: 1rem;
 }
 
 .widget-action {
-  background: none;
-  border: none;
-  border-bottom: 1px solid #666;
-  color: white;
-  font-size: 0.75rem;
-  padding: 0 0 2px 0;
-  cursor: pointer;
-  letter-spacing: 1px;
-  transition: border-color 0.2s;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 0.75rem;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
 }
 
-.widget-action:hover {
-  border-color: white;
-}
-
-/* --- Right Column: Form --- */
-.setup-form-wrapper {
-  flex: 1.2;
-  width: 100%;
-  max-width: 600px;
-}
-
+/* Form Styles */
 .setup-card-editorial {
-  background: #0f0f0f;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 3rem;
-  border-radius: 4px; /* Sharp corners */
+    width: 100%;
+    max-width: 500px;
+    background: #111;
+    border: 1px solid #222;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 
 .form-group {
-  margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 .label-editorial {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #888;
-  margin-bottom: 0.8rem;
-  text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #666;
+    letter-spacing: 1px;
+    margin-bottom: 0.75rem;
 }
 
-/* Minimal Upload */
-.upload-minimal {
-  border: 1px dashed rgba(255, 255, 255, 0.15);
-  padding: 0.5rem;
-  transition: border-color 0.2s;
-}
-.upload-minimal:hover { border-color: white; }
-
-/* Grid Layout */
-.settings-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+.input-editorial {
+    width: 100%;
+    background: #000;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    transition: border-color 0.2s;
 }
 
-@media (max-width: 600px) {
-  .settings-grid { grid-template-columns: 1fr; gap: 1rem; }
+.input-editorial:focus {
+    outline: none;
+    border-color: #fff;
 }
 
-/* Radio Group (Chips) */
+/* Radio Group (Experience / Focus) */
 .radio-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .radio-btn {
-  padding: 12px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #666;
-  text-align: left;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+    flex: 1;
+    background: #000;
+    border: 1px solid #333;
+    color: #666;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .radio-btn:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  color: #aaa;
+    border-color: #555;
+    color: #aaa;
 }
 
 .radio-btn.selected {
-  background: white;
-  color: black;
-  border-color: white;
-  font-weight: 600;
+    background: #fff;
+    color: #000;
+    border-color: #fff;
+}
+
+/* Settings Grid */
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 600px) {
+    .settings-grid {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 /* Slider */
 .slider-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
 }
 
 .slider-val {
-  font-family: var(--font-mono, monospace);
-  font-size: 0.8rem;
-  color: white;
+    font-size: 0.8rem;
+    color: #fff;
+    font-weight: bold;
 }
 
 .slider-editorial {
-  width: 100%;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.1);
-  appearance: none;
-  cursor: pointer;
+    width: 100%;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+    -webkit-appearance: none;
+    outline: none;
 }
 
 .slider-editorial::-webkit-slider-thumb {
-  appearance: none;
-  width: 12px;
-  height: 12px;
-  background: white;
-  border-radius: 0; /* Square thumb for editorial look */
-  transition: transform 0.1s;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.1s;
 }
 
 .slider-editorial::-webkit-slider-thumb:hover {
-  transform: scale(1.5);
+    transform: scale(1.2);
 }
 
-.mt-4 { margin-top: 1.5rem; }
-.mt-8 { margin-top: 3rem; }
-.fade-in { animation: fadeIn 0.5s ease-out; }
+/* Buttons */
+.btn-editorial {
+    background: #fff;
+    color: #000;
+    padding: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn-editorial:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: #f0f0f0;
+}
+
+.btn-editorial:disabled {
+    background: #444;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* Animation */
+.fade-in {
+    animation: fadeIn 0.4s ease-in;
+}
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile Responsive */
+@media (max-width: 900px) {
+    .setup-root {
+        flex-direction: column;
+    }
+    .setup-visual {
+        padding: 2rem;
+        border-right: none;
+        border-bottom: 1px solid #222;
+    }
+    .visual-title {
+        font-size: 2.5rem;
+    }
 }

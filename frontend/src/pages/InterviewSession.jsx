@@ -1,72 +1,119 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Mic, Video, ArrowRight, AlertTriangle, CheckCircle } from 'lucide-react';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import '../styles/theme.css';
-import './InterviewSession.css';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Mic, Video, VideoOff, MicOff, ArrowRight } from 'lucide-react';
+import './InterviewSession.css'; // We will create this CSS next
 
 const InterviewSession = () => {
-  const [searchParams] = useSearchParams();
-  const sessionId = searchParams.get('session_id');
+  const location = useLocation();
   const navigate = useNavigate();
-
-  const [hasPermissions, setHasPermissions] = useState(false);
   const videoRef = useRef(null);
 
+  // The question data passed from the Setup page
+  const questionData = location.state?.question;
+
+  // States
+  const [hasPermissions, setHasPermissions] = useState(false);
+  const [permissionError, setPermissionError] = useState(null);
+  const [micOn, setMicOn] = useState(true);
+  const [cameraOn, setCameraOn] = useState(true);
+
+  // 1. Request Media Permissions on Mount
   useEffect(() => {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
+    const getPermissions = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: true 
+        });
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
         setHasPermissions(true);
-        if (videoRef.current) videoRef.current.srcObject = stream;
-      })
-      .catch(err => console.error(err));
+      } catch (err) {
+        console.error("Permission Error:", err);
+        setPermissionError("Camera/Microphone access denied. Please enable permissions to proceed.");
+      }
+    };
+
+    getPermissions();
+
+    // Cleanup: Stop stream on unmount
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      }
+    };
   }, []);
 
-  const handleStart = () => {
-    if (hasPermissions) navigate(`/interview/live?session_id=${sessionId}`);
+  // 2. Toggle Handlers
+  const toggleMic = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const audioTrack = videoRef.current.srcObject.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setMicOn(audioTrack.enabled);
+      }
+    }
   };
 
-  return (
-    <div className="session-root page-container">
-      <div className="session-header">
-        <span className="text-mono">02 // PRE-FLIGHT CHECK</span>
-        <h1>SYSTEM CHECK</h1>
-      </div>
+  const toggleCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const videoTrack = videoRef.current.srcObject.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setCameraOn(videoTrack.enabled);
+      }
+    }
+  };
 
-      <div className="session-grid">
-        {/* Video Feed */}
-        <div className="video-frame">
-          <video ref={videoRef} autoPlay muted playsInline className="mirror-feed" />
-          <div className="video-overlay">
-            <div className={`status-indicator ${hasPermissions ? 'ready' : 'error'}`}>
-              {hasPermissions ? <CheckCircle size={14}/> : <AlertTriangle size={14}/>}
-              <span>{hasPermissions ? "CAMERA ACTIVE" : "NO SIGNAL"}</span>
-            </div>
+  const startActualInterview = () => {
+    // Navigate to your actual coding/interview arena, passing the stream/state if needed
+    // For now, let's assume we render the Question View right here or navigate to Arena
+    navigate('/coding/arena', { state: { question: questionData } });
+  };
+
+  // --- RENDER: PERMISSION DENIED ---
+  if (permissionError) {
+    return (
+      <div className="session-container error-state">
+        <h2>Access Denied</h2>
+        <p>{permissionError}</p>
+        <button onClick={() => window.location.reload()} className="btn-retry">Try Again</button>
+      </div>
+    );
+  }
+
+  // --- RENDER: PERMISSION CHECK & PREVIEW ---
+  return (
+    <div className="session-container">
+      <div className="preview-card">
+        <h1 className="preview-title">System Check</h1>
+        <p className="preview-sub">Ensure your camera and microphone are working before entering.</p>
+
+        {/* Video Preview */}
+        <div className="video-wrapper">
+          <video ref={videoRef} autoPlay playsInline muted className="live-video" />
+          
+          <div className="controls-overlay">
+            <button onClick={toggleMic} className={`control-btn ${!micOn ? 'off' : ''}`}>
+              {micOn ? <Mic size={20} /> : <MicOff size={20} />}
+            </button>
+            <button onClick={toggleCamera} className={`control-btn ${!cameraOn ? 'off' : ''}`}>
+              {cameraOn ? <Video size={20} /> : <VideoOff size={20} />}
+            </button>
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className="session-controls">
-          <Card className="card-editorial">
-            <h3 className="section-title">ENVIRONMENT GUIDELINES</h3>
-            <ul className="check-list">
-              <li>ENSURE CLEAR LIGHTING</li>
-              <li>USE HEADPHONES FOR BEST AUDIO</li>
-              <li>MINIMIZE BACKGROUND NOISE</li>
-            </ul>
-            <div className="audio-meter-bar">
-              {/* Fake visualizer line */}
-              <div className="meter-fill"></div>
-            </div>
-            <Button 
-              onClick={handleStart} 
-              disabled={!hasPermissions} 
-              className="btn-editorial primary w-full"
-            >
-              ENTER STUDIO <ArrowRight size={16} />
-            </Button>
-          </Card>
+        {/* Ready Button */}
+        <div className="action-area">
+          {hasPermissions ? (
+            <button onClick={startActualInterview} className="btn-start-interview">
+              JOIN SESSION <ArrowRight size={18} />
+            </button>
+          ) : (
+            <button disabled className="btn-loading">Checking Devices...</button>
+          )}
         </div>
       </div>
     </div>

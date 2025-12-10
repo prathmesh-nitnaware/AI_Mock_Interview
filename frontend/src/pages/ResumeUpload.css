@@ -1,161 +1,217 @@
-/* =========================================
-   RESUME UPLOAD.CSS
-   Editorial Design
-   ========================================= */
-
-.resume-root {
+/* --- Base Layout --- */
+.dashboard-container {
+  min-height: 100vh;
+  background-color: #050505; /* Deep Black */
+  color: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Changed from 'center' to remove huge top gap */
-  justify-content: flex-start; 
-  /* Changed from 80vh to prevent forced stretching */
-  min-height: auto; 
-  padding-bottom: 4rem;
+  justify-content: center;
+  padding: 2rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Header */
-.resume-header {
-  text-align: center;
-  margin-bottom: 4rem;
-  max-width: 600px;
-  /* Optional: Adjust this value if you need more/less space */
-  margin-top: 2rem; 
-}
-
-.resume-title {
-  font-size: 3.5rem;
-  font-weight: 800;
-  letter-spacing: -2px;
+/* --- Typography --- */
+.title {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
   margin-bottom: 1rem;
-  color: white;
-  line-height: 1.1;
+  background: linear-gradient(to right, #ffffff, #a5a5a5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
 }
 
-.resume-subtitle {
-  color: #888;
-  font-size: 1.1rem;
+.subtitle {
+  color: #9ca3af;
+  margin-bottom: 3rem;
+  text-align: center;
+  max-width: 600px;
   line-height: 1.6;
 }
 
-/* Content Area */
-.resume-content {
+/* --- Upload Box --- */
+.upload-box {
   width: 100%;
   max-width: 500px;
-}
-
-/* Upload Card */
-.upload-card-editorial {
-  background: #0f0f0f;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 3rem;
-  position: relative;
-  min-height: 400px;
+  background-color: #111111;
+  border: 1px solid #333;
+  border-radius: 16px;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease;
 }
 
-.upload-section {
-  margin-bottom: 2rem;
-}
-
-/* Privacy Badge */
-.privacy-badge {
+.upload-label {
+  width: 100%;
+  height: 150px;
+  border: 2px dashed #444;
+  border-radius: 12px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 2rem;
-  font-size: 0.7rem;
-  color: #444;
-  letter-spacing: 1px;
+  cursor: pointer;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.upload-label:hover {
+  border-color: #3b82f6; /* Blue hover */
+  color: #fff;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.file-info {
+  width: 100%;
+  background-color: #1f2937;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #374151;
+  margin-bottom: 1rem;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.remove-btn:hover {
+  color: #ef4444; /* Red */
+}
+
+/* --- Action Button --- */
+.analyze-btn {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  background-color: #ffffff;
+  color: #000000;
+  border: none;
+  border-radius: 8px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
   text-transform: uppercase;
 }
 
-.error-text-editorial {
-  color: #ef4444;
-  text-align: center;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
+.analyze-btn:hover:not(:disabled) {
+  background-color: #e5e5e5;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
-/* Scanning Animation */
-.scanning-state {
-  text-align: center;
-  position: relative;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-.scan-icon {
-  margin-bottom: 2rem;
+.analyze-btn:disabled {
+  background-color: #333;
   color: #666;
+  cursor: not-allowed;
 }
 
-.scanning-state h3 {
-  font-size: 1.2rem;
-  letter-spacing: 2px;
-  margin-bottom: 0.5rem;
-}
-
-.scanning-state p {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.scan-line {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* --- Results Grid --- */
+.results-section {
   width: 100%;
-  height: 2px;
-  background: white;
-  box-shadow: 0 0 20px white;
-  animation: scanDown 2s infinite linear;
-}
-
-@keyframes scanDown {
-  0% { top: 20%; opacity: 0; }
-  20% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { top: 80%; opacity: 0; }
-}
-
-/* Steps Row */
-.steps-row {
+  max-width: 900px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-  margin-top: 4rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 2rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  /* Animation */
+  animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px);
 }
 
-.step-col {
+.card {
+  background-color: #111111;
+  border: 1px solid #333;
+  padding: 2rem;
+  border-radius: 16px;
+}
+
+.card.full-width {
+  grid-column: span 2;
+}
+
+.card-title {
+  color: #6b7280;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+/* Score Colors */
+.score-value {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.score-high { color: #4ade80; } /* Green */
+.score-med { color: #facc15; }  /* Yellow */
+.score-low { color: #f87171; }  /* Red */
+
+/* List Styling */
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tips-list li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  color: #d1d5db;
+  font-size: 0.95rem;
+}
+
+.bullet {
+  color: #3b82f6;
+  margin-right: 0.75rem;
+  font-weight: bold;
+}
+
+.error-msg {
+  color: #ef4444;
+  margin-top: 1rem;
+  font-size: 0.9rem;
   text-align: center;
 }
 
-.step-num {
-  font-family: var(--font-mono);
-  color: #333;
-  font-size: 0.8rem;
-  display: block;
-  margin-bottom: 0.5rem;
+/* --- Keyframe Animation --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.step-col h4 {
-  font-size: 0.9rem;
-  color: white;
-  margin-bottom: 0.3rem;
-  letter-spacing: 1px;
-}
-
-.step-col p {
-  font-size: 0.75rem;
-  color: #666;
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .results-section {
+    grid-template-columns: 1fr;
+  }
+  .card.full-width {
+    grid-column: span 1;
+  }
+  .title {
+    font-size: 2rem;
+  }
 }

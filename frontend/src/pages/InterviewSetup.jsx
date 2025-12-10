@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { api } from '../services/api';
+import { api } from '../services/api'; 
 import { Briefcase, FileText, Check, AlertCircle, Sliders, ArrowRight } from 'lucide-react';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import InputField from '../components/forms/InputField';
-import FileUpload from '../components/FileUpload';
-import '../styles/theme.css';
 import './InterviewSetup.css';
 
 const InterviewSetup = () => {
@@ -36,15 +31,26 @@ const InterviewSetup = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleResumeUpload = async (file) => {
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0];
     if (!file) return;
+
     try {
-      const data = await api.uploadResume(file);
-      setResumeText(data.raw_text);
-      localStorage.setItem('last_resume_text', data.raw_text);
-      setShowUploader(false);
+      // 1. Send file to backend
+      const data = await api.scoreResume(file, "General Context");
+      
+      // 2. Check for extracted text from the new backend response
+      if (data.extracted_text) {
+          setResumeText(data.extracted_text);
+          localStorage.setItem('last_resume_text', data.extracted_text);
+          setShowUploader(false);
+          alert("Resume Parsed Successfully! AI Context Active.");
+      } else {
+          alert("Resume parsed, but no text could be extracted.");
+      }
     } catch (err) {
-      alert("Failed to parse file.");
+      console.error(err);
+      alert("Failed to parse file. Ensure backend is running.");
     }
   };
 
@@ -54,19 +60,25 @@ const InterviewSetup = () => {
 
     setLoading(true);
     try {
-      const data = await api.startInterview(
-        formData.role, 
-        formData.experience, 
-        formData.type,
-        parseInt(formData.questionCount),
-        resumeText
-      );
-      if (data?.session_id) {
-        navigate(`/interview/session?session_id=${data.session_id}`);
+      // 3. Construct the config object
+      const sessionConfig = {
+        role: formData.role,
+        experience: formData.experience,
+        focus: formData.type,
+        intensity: parseInt(formData.questionCount),
+        resume_context: resumeText // <--- Passing the text here
+      };
+
+      // 4. Call the /initiate API
+      const data = await api.startInterview(sessionConfig);
+      
+      if (data) {
+        // Navigate to the coding arena with the generated question
+        navigate('/coding/arena', { state: { question: data } });
       }
     } catch (error) {
       console.error(error);
-      alert("Session initialization failed.");
+      alert("Session initialization failed. Check backend logs.");
     } finally {
       setLoading(false);
     }
@@ -104,7 +116,7 @@ const InterviewSetup = () => {
 
       {/* RIGHT COLUMN: Interactive Form */}
       <div className="setup-form-wrapper">
-        <Card className="setup-card-editorial">
+        <div className="setup-card-editorial">
           <form onSubmit={handleSubmit}>
             
             {/* Resume Upload Toggle */}
@@ -114,7 +126,10 @@ const InterviewSetup = () => {
                   <FileText size={14} /> RESUME SOURCE
                 </div>
                 <div className="upload-minimal">
-                  <FileUpload onFileSelect={handleResumeUpload} label="UPLOAD PDF" />
+                   <label className="cursor-pointer bg-gray-800 hover:bg-gray-700 text-white py-2 px-4 rounded border border-gray-600 block text-center transition">
+                      UPLOAD PDF
+                      <input type="file" accept=".pdf" className="hidden" onChange={handleResumeUpload} />
+                   </label>
                 </div>
               </div>
             )}
@@ -124,8 +139,9 @@ const InterviewSetup = () => {
               <div className="label-editorial">
                 <Briefcase size={14} /> TARGET ROLE
               </div>
-              <InputField
+              <input
                 name="role"
+                className="input-editorial"
                 placeholder="E.G. SENIOR PRODUCT MANAGER"
                 value={formData.role}
                 onChange={handleChange}
@@ -187,12 +203,16 @@ const InterviewSetup = () => {
                />
             </div>
 
-            <Button type="submit" variant="primary" isLoading={loading} className="w-full btn-editorial primary mt-8">
-              INITIATE SESSION <ArrowRight size={16} />
-            </Button>
+            <button 
+                type="submit" 
+                disabled={loading}
+                className="w-full btn-editorial primary mt-8 flex items-center justify-center gap-2"
+            >
+              {loading ? "INITIALIZING..." : <>INITIATE SESSION <ArrowRight size={16} /></>}
+            </button>
 
           </form>
-        </Card>
+        </div>
       </div>
     </div>
   );

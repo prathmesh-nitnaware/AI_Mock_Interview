@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../services/api';
+import { scoreResume, getDSAQuestion, api } from '../services/api';
 import { Play, UploadCloud, Terminal, ArrowUpRight } from 'lucide-react';
 import './Dashboard.css';
 
