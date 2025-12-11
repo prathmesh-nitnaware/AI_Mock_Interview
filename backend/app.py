@@ -2,47 +2,37 @@ import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 
-# Import blueprints from the routes folder
-# Ensure these files exist in your /routes directory
+# Import Blueprints
+# Ensure 'backend/routes/interview.py' and 'backend/routes/resume_score.py' exist
 from routes.resume_score import resume_bp
 from routes.interview import interview_bp
-
-# Optional: Import Auth blueprint if you have created auth.py
-# from routes.auth import auth_bp 
 
 app = Flask(__name__)
 
 # --- CONFIGURATION ---
-# Allow React (localhost:5173 or 3000) to talk to this Backend
+# Allow all origins (Simplest for dev)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Security: Set a secret key for sessions (if used)
-app.config['SECRET_KEY'] = 'your-secret-key-here'
-
 # File Upload Config
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Limit uploads to 16MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
 UPLOAD_FOLDER = './temp_uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Ensure the upload folder exists on startup
+# Ensure temp folder exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 # --- REGISTER BLUEPRINTS ---
-# This connects your specific route files to the main app
 app.register_blueprint(resume_bp, url_prefix='/api/resume')
 app.register_blueprint(interview_bp, url_prefix='/api/interview')
 
-# Optional: Register Auth if you have it
-# app.register_blueprint(auth_bp, url_prefix='/api/auth')
-
-# --- HEALTH CHECK ROUTE ---
+# --- HEALTH CHECK ---
 @app.route('/', methods=['GET'])
 def health_check():
     return jsonify({
         "status": "active",
-        "message": "Backend is running successfully",
-        "services": ["resume-scorer", "interview-bot"]
+        "message": "Prep.AI Backend is running",
+        "routes": ["/api/resume/score", "/api/interview/initiate", "/api/interview/submit"]
     }), 200
 
 # --- ERROR HANDLERS ---
@@ -60,5 +50,5 @@ def not_found(error):
 
 # --- MAIN ENTRY POINT ---
 if __name__ == '__main__':
-    # Run on port 5000 by default
+    # Run on Port 5000
     app.run(debug=True, port=5000)

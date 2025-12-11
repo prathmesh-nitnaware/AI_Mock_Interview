@@ -8,21 +8,26 @@ const InterviewSetup = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // State
+  // 1. Initialize State
+  // Try to recover resume text if the user came back or refreshed
   const [resumeText, setResumeText] = useState(
     location.state?.raw_text || localStorage.getItem('last_resume_text') || ""
   );
+  
+  // Show uploader if we don't have text yet
   const [showUploader, setShowUploader] = useState(!resumeText); 
   const [loading, setLoading] = useState(false);
 
+  // Form Configuration
   const [formData, setFormData] = useState({
     role: '',
     experience: '0-2 years',
     type: 'Technical',
-    questionCount: 5
+    questionCount: 5 // This maps to "intensity" in our backend
   });
 
-  // Handlers
+  // --- Handlers ---
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -36,10 +41,11 @@ const InterviewSetup = () => {
     if (!file) return;
 
     try {
-      // 1. Send file to backend
+      // 1. Send file to backend to extract text
+      // We use "General Context" as a placeholder job desc to get the raw text
       const data = await api.scoreResume(file, "General Context");
       
-      // 2. Check for extracted text from the new backend response
+      // 2. Store the extracted text
       if (data.extracted_text) {
           setResumeText(data.extracted_text);
           localStorage.setItem('last_resume_text', data.extracted_text);
@@ -60,21 +66,28 @@ const InterviewSetup = () => {
 
     setLoading(true);
     try {
-      // 3. Construct the config object
+      // 3. Construct the Session Config
       const sessionConfig = {
         role: formData.role,
         experience: formData.experience,
         focus: formData.type,
-        intensity: parseInt(formData.questionCount),
-        resume_context: resumeText // <--- Passing the text here
+        intensity: parseInt(formData.questionCount), // This sets the limit for the interview loop
+        resume_context: resumeText 
       };
 
-      // 4. Call the /initiate API
+      // 4. Generate the First Question
       const data = await api.startInterview(sessionConfig);
       
       if (data) {
-        // Navigate to the coding arena with the generated question
-        navigate('/coding/arena', { state: { question: data } });
+        // --- CRITICAL: Pass Config Forward ---
+        // We navigate to the Camera Room first
+        // We pass 'config' so the Live page eventually knows the question limit
+        navigate('/interview/room', { 
+            state: { 
+                question: data,
+                config: sessionConfig 
+            } 
+        });
       }
     } catch (error) {
       console.error(error);

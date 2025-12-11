@@ -1,97 +1,299 @@
-/* =========================================
-   INTERVIEW LIVE.CSS
-   Teleprompter / Minimal Style
-   ========================================= */
-
-.live-root {
-  min-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
+.live-container {
+    display: flex;
+    height: 100vh;
+    background-color: #050505;
+    color: white;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
 }
 
-.live-header {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+/* --- LEFT PANEL (AI) --- */
+.question-panel {
+    width: 40%;
+    padding: 2rem;
+    background: #0a0a0a;
+    border-right: 1px solid #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
-.live-badge {
-  color: #ef4444;
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  animation: blink 2s infinite;
+.back-btn {
+    align-self: flex-start;
+    background: transparent;
+    border: 1px solid #333;
+    color: #888;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.timer-text {
-  font-family: var(--font-mono);
-  color: #666;
+/* AI AVATAR PULSE ANIMATION */
+.ai-avatar-container {
+    margin: 3rem 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.teleprompter-view {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  max-width: 800px;
+.ai-circle {
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, #3b82f6 0%, #1e3a8a 100%);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    z-index: 2;
 }
 
-.ai-question {
-  font-size: 2.5rem;
-  font-weight: 500;
-  line-height: 1.4;
-  color: white;
+.pulsing .wave {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 2px solid rgba(59, 130, 246, 0.5);
+    animation: wave-animation 2s infinite linear;
+    z-index: 1;
+}
+.pulsing .wave:nth-child(2) { animation-delay: 0.6s; }
+.pulsing .wave:nth-child(3) { animation-delay: 1.2s; }
+
+@keyframes wave-animation {
+    0% { width: 100px; height: 100px; opacity: 1; }
+    100% { width: 300px; height: 300px; opacity: 0; }
 }
 
-/* Record Button */
-.live-controls {
-  margin-bottom: 4rem;
+.ai-status-text {
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    color: #666;
+    font-weight: bold;
 }
 
-.record-btn {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.2);
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 1rem;
+.problem-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
 }
 
-.record-btn:hover {
-  border-color: white;
-  background: rgba(255,255,255,0.05);
+.desc-box {
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    max-width: 80%;
 }
 
-.record-btn.active {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
+.ai-controls {
+    display: flex;
+    gap: 1rem;
+}
+.control-btn {
+    background: #222;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.control-btn:hover { background: #333; }
+
+/* --- RIGHT PANEL (USER) --- */
+.interaction-panel {
+    width: 60%;
+    background: #111;
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
 }
 
-.stop-square {
-  width: 24px;
-  height: 24px;
-  background: #ef4444;
-  border-radius: 2px;
+.interaction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
 }
 
-.mic-icon { color: white; }
-
-.status-text {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: #666;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
+.status-live { color: #ef4444; font-weight: bold; animation: blink 1s infinite; }
+.status-idle { color: #666; font-weight: bold; }
 
 @keyframes blink { 50% { opacity: 0.5; } }
+
+.transcript-box {
+    flex: 1;
+    background: #0a0a0a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 1.5rem;
+    color: white;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    resize: none;
+    margin-bottom: 2rem;
+}
+.transcript-box:focus { outline: 1px solid #3b82f6; }
+
+.voice-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.mic-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: none;
+    background: #222;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.1);
+}
+
+.mic-btn:hover { background: #333; }
+
+.mic-btn.active {
+    background: #ef4444;
+    box-shadow: 0 0 0 15px rgba(239, 68, 68, 0.2);
+    animation: pulse-red 1.5s infinite;
+}
+
+.hint-text {
+    margin-top: 1rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.submit-voice-btn {
+    background: #ffffff;
+    color: black;
+    border: none;
+    padding: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    align-items: center;
+}
+.submit-voice-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* FEEDBACK OVERLAY (Reused) */
+.feedback-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+.feedback-card {
+    background: #111;
+    border: 1px solid #333;
+    padding: 2rem;
+    border-radius: 16px;
+    width: 500px;
+    text-align: center;
+}
+.score-row { display: flex; justify-content: space-around; margin: 2rem 0; }
+.score-item { display: flex; flex-direction: column; }
+.score-item .value { font-size: 2rem; font-weight: 800; }
+.value.green { color: #22c55e; }
+.value.blue { color: #3b82f6; }
+.continue-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* --- ZOOM-STYLE SELF VIEW --- */
+.self-view-container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 280px;
+    height: 160px;
+    background: #000;
+    border: 2px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 50;
+    transition: all 0.3s ease;
+}
+
+.self-view-container:hover {
+    transform: scale(1.02);
+    border-color: #555;
+}
+
+.self-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* Mirror effect */
+}
+
+.camera-off-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    color: #666;
+    gap: 10px;
+    font-size: 0.8rem;
+}
+
+.toggle-cam-btn {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.6);
+    border: 1px solid #444;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background 0.2s;
+    opacity: 0; /* Hidden by default */
+}
+
+.self-view-container:hover .toggle-cam-btn {
+    opacity: 1; /* Show on hover */
+}
+
+.toggle-cam-btn:hover {
+    background: #222;
+}

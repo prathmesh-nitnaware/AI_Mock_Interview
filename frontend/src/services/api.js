@@ -16,7 +16,7 @@ const getAuthToken = () => localStorage.getItem('token');
 
 
 // ==========================================
-// INDIVIDUAL EXPORTS (Keep these for direct imports)
+// INDIVIDUAL EXPORTS
 // ==========================================
 
 export const loginUser = async (credentials) => {
@@ -89,35 +89,51 @@ export const generateResumeQuestion = async (file) => {
 
 export const submitCode = async (payload) => {
   try {
-    const response = await apiClient.post('/interview/submit', payload, {
-      headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-    });
+    // Note: Removed auth header temporarily to ensure it works for testing
+    const response = await apiClient.post('/interview/submit', payload);
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : new Error("Code submission failed");
   }
 };
 
+// --- NEW FUNCTION: Fetch Next Question ---
+export const fetchNextQuestion = async (params) => {
+  try {
+    const response = await apiClient.post('/interview/next-question', params);
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error("Failed to fetch next question");
+  }
+};
+
 
 // ==========================================
-// THE 'api' OBJECT EXPORT (Fixes your crash)
+// THE 'api' OBJECT EXPORT
 // ==========================================
-// This combines the Axios client with your custom functions
 export const api = {
-  // 1. Pass through standard Axios methods (so api.get/api.post still work)
+  // 1. Pass through standard Axios methods
   get: (url, config) => apiClient.get(url, config),
   post: (url, data, config) => apiClient.post(url, data, config),
   put: (url, data, config) => apiClient.put(url, data, config),
   delete: (url, config) => apiClient.delete(url, config),
 
-  // 2. NEW: The function causing your error (Interview Setup)
+  // 2. Custom Functions
   startInterview: async (sessionConfig) => {
-    // Calls the backend /initiate route
     const response = await apiClient.post('/interview/initiate', sessionConfig);
     return response.data;
   },
 
-  // 3. NEW: Mock Functions for Dashboard (Prevents Dashboard crash)
+  // 3. Connect Functions
+  submitCode: submitCode,
+  scoreResume: scoreResume,
+  getDSAQuestion: getDSAQuestion,
+  generateResumeQuestion: generateResumeQuestion,
+  
+  // --- ADDED THIS LINE ---
+  fetchNextQuestion: fetchNextQuestion, 
+
+  // 4. Mock Data Functions
   getUserProfile: async (userId) => {
     return new Promise((resolve) => {
       setTimeout(() => resolve({ 
@@ -137,6 +153,6 @@ export const api = {
     });
   },
 
-  // 4. Resume Alias (Safety fallback)
+  // 5. Aliases
   uploadResume: (file) => scoreResume(file, "Software Engineer")
 };

@@ -1,109 +1,128 @@
-/* =========================================
-   INTERVIEW REPORT.CSS
-   Print / Editorial Style
-   ========================================= */
-
-.report-root {
+.report-container {
+  padding: 3rem;
+  background-color: #050505;
+  color: white;
   min-height: 100vh;
+  font-family: 'Inter', sans-serif;
 }
 
 .report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid #333;
   padding-bottom: 2rem;
 }
 
-.report-title {
-  font-size: 3rem;
+.report-header h1 {
+  font-size: 2.5rem;
   font-weight: 800;
-  letter-spacing: -2px;
+  margin-bottom: 0.5rem;
 }
 
-.report-layout {
+.report-header p { color: #888; }
+
+.stats-grid {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 4rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
   margin-bottom: 4rem;
 }
 
-/* Score Card */
-.score-card-editorial {
-  background: #0f0f0f;
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 3rem;
+.stat-card {
+  background: #111;
+  border: 1px solid #333;
+  padding: 2rem;
+  border-radius: 12px;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
-.big-score {
-  font-size: 8rem;
-  font-weight: 300;
-  line-height: 1;
-  color: white;
-  margin-top: 1rem;
+.stat-card.main {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.05);
 }
 
-/* Metrics */
-.metrics-column {
+.stat-label { color: #888; font-size: 0.9rem; margin-bottom: 0.5rem; }
+.stat-value { font-size: 2.5rem; font-weight: 900; }
+.stat-value.big { font-size: 4rem; color: #22c55e; }
+.stat-value.bad { color: #ef4444; }
+.stat-sub { color: #666; font-size: 0.8rem; margin-top: 5px; }
+
+.history-section h2 { margin-bottom: 1.5rem; }
+
+.history-item {
+  background: #111;
+  border: 1px solid #333;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.history-header {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2rem;
-}
-
-.metric-row {
-  display: grid;
-  grid-template-columns: 100px 1fr 50px;
   align-items: center;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
-.metric-label {
+.q-num {
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-size: 0.8rem;
-  color: #888;
-  letter-spacing: 1px;
+  font-weight: bold;
 }
 
-.metric-bar-bg {
-  height: 2px;
-  background: rgba(255,255,255,0.1);
-  width: 100%;
+.user-ans {
+  font-style: italic;
+  color: #aaa;
+  margin-bottom: 1.5rem;
+  padding-left: 1rem;
+  border-left: 2px solid #333;
 }
 
-.metric-bar-fill {
-  height: 100%;
+.ai-feedback {
+  background: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.ai-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  color: #22c55e;
+}
+
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.btn-primary {
   background: white;
+  color: black;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-.metric-val {
-  font-family: var(--font-mono);
+.btn-secondary {
+  background: transparent;
   color: white;
-}
-
-/* Transcript */
-.transcript-section {
-  border-top: 1px solid rgba(255,255,255,0.1);
-  padding-top: 3rem;
-}
-
-.transcript-item {
-  margin-bottom: 2rem;
-}
-
-.transcript-q {
-  font-weight: 700;
-  color: white;
-  margin-bottom: 0.5rem;
-}
-
-.transcript-a {
-  color: #888;
-  font-family: serif; /* Editorial touch */
-  font-size: 1.1rem;
-  line-height: 1.6;
+  border: 1px solid #333;
+  padding: 1rem 2rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
