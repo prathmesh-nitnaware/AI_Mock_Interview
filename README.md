@@ -1,186 +1,119 @@
-# AI POWERED MOCK INTERVIEW PLATFORM
+# PrepAI – Multimodal AI Mock Interview Platform
 
-The future of interviews, where AI is your interviewer, mentor, and code reviewer — all in one.
+## 🚀 Overview
 
-This repository contains the complete backend (FastAPI) and a lightweight frontend (Streamlit) for a next-generation AI interview system.
-The backend does all the heavy lifting — AI logic, ML models, NLP scoring — so any frontend (Streamlit, React, Flutter, etc.) can connect easily.
+PrepAI is an AI-powered mock interview platform that simulates real-world interview environments using Generative AI, Speech Processing, NLP, and Computer Vision.
 
-🚀 1. **Features Added (Current)**
-🎯 Personalized Interview Generation
+Unlike traditional chatbot-based tools, PrepAI evaluates not only technical responses but also communication quality, confidence, posture, gaze stability, tone clarity, and nervousness — delivering a comprehensive performance report.
 
-Endpoint: POST /start_interview
+---
 
-Parses resume.pdf to extract skills.
+## 🎯 Problem Statement
 
-Generates full interview questions based on:
+Interview preparation often suffers from:
 
-User’s extracted skills
+- Limited access to expert mock interviewers  
+- Subjective and inconsistent feedback  
+- No evaluation of body language or speech patterns  
+- Static, non-adaptive questioning systems  
 
-Difficulty level (Easy, Medium, Hard)
+PrepAI addresses these gaps using a multimodal AI-driven evaluation framework.
 
-Number of questions
+---
 
-🔊 AI-Spoken Questions (TTS)
+## 🧠 Core Features
 
-Uses gTTS to convert all AI-generated questions into audio (base64).
+### 1️⃣ Resume-Based Personalization
+- Extracts resume text using PyPDF2 and SpaCy  
+- LLM analyzes strengths and skill gaps  
+- Generates role-specific and difficulty-adjusted questions  
 
-Frontend simply plays the audio — no extra logic needed.
+### 2️⃣ Real-Time Adaptive Interview Engine
+- Role-based interviews (ML Engineer, Data Analyst, HR, etc.)  
+- Whisper-based Speech-to-Text transcription  
+- LLM-driven answer evaluation  
+- Dynamic follow-up question generation  
+- gTTS-based spoken question simulation  
 
-👀 Live CV & Body Language Analysis
+### 3️⃣ Audio Intelligence
+- Speech rate and fluency scoring  
+- Tone stability (jitter detection)  
+- Nervousness estimation via voice stress patterns  
 
-Endpoint: POST /analyze_frame
+### 4️⃣ Computer Vision Analysis
+- MediaPipe-based posture tracking  
+- Eye-gaze tracking and blink-rate monitoring  
+- CNN-based emotion recognition  
 
-Analyzes webcam frames using MediaPipe for:
+### 5️⃣ Multimodal Scoring Engine
 
-Posture Scoring (Slouching vs Upright)
+Weighted evaluation rubric:
 
-Eye Contact Tracking (3D Head Pose)
+- Technical Accuracy — 45%  
+- Communication Quality — 20%  
+- Body Language — 15%  
+- Attention & Engagement — 10%  
+- Nervousness Score — Heuristic (Audio + CV signals)  
 
-Blink Detection (Nervousness Indicators)
+Generates:
+- Full interview transcript  
+- Behavioral metrics  
+- Structured performance report  
+- Personalized improvement roadmap  
 
-🧠 Complete Interview Submission & Analysis
+---
 
-Endpoint: POST /submit_full_interview
+## 🏗 Technical Architecture
 
-Performs multi-stage evaluation:
+**Frontend → FastAPI Backend → AI Processing Modules**
 
-Speech-to-Text (Whisper) for transcription
+### Backend
+- FastAPI  
+- MongoDB  
 
-Vocal Tone Analysis (Librosa) for Confidence, Fluency, Jitter
+### AI Components
+- LLM (OpenAI / Gemini) for evaluation & adaptive questioning  
+- Whisper STT for transcription  
+- MediaPipe + OpenCV for posture & gaze tracking  
+- Custom CNN for emotion detection  
+- Audio feature extraction pipeline  
 
-Content Scoring (Ollama) for technical correctness
+### Deployment
+- Vercel / Render  
+- Git for version control  
 
-Heuristic Nervousness Model combining:
+---
 
-Audio Jitter (60% weight)
+## ⚙️ Challenges & Mitigations
 
-Blink Rate (40% weight)
+**Posture Detection Accuracy**
+- Smoothing filters  
+- Diverse training data  
+- Validation layers  
 
-📊 Final Report Generation
+**Real-Time Coding Evaluation**
+- Rule-based validation  
+- Test-case verification  
+- Content filtering  
 
-Combines all analysis metrics:
+**Scalability & Performance**
+- Cloud deployment  
+- Secure data handling  
+- Optimized API response time  
 
-Content
+---
 
-Communication
+## 🔮 Future Enhancements
 
-Posture
+- Cheat detection (plagiarism + gaze diversion detection)  
+- Real-time interrupting AI for off-track responses  
+- Company-specific interview simulations  
+- Advanced analytics dashboard  
 
-Confidence
+---
 
-Returns a complete JSON report with weighted scoring.
+## 📌 Impact
 
-💻 AI Code Review Module
+PrepAI bridges the gap between technical evaluation and behavioral analysis by combining NLP, speech processing, and computer vision into a unified AI interview simulator.
 
-Endpoint: POST /generate_coding_problem
-Generates a LeetCode-style question using Ollama.
-
-Endpoint: POST /evaluate_code
-Produces a FAANG-level code review covering Correctness, Big O, and Suggestions.
-
-🧩 2. Prerequisites (System-Level)
-
-Before running the project, make sure these are installed:
-
-Python 3.10 (required for mediapipe compatibility)
-
-Ollama (core LLM engine)
-
-Mistral model (run ollama pull mistral)
-
-FFmpeg (required for whisper and audio features)
-
-FFmpeg Installation
-
-Windows:
-```
-winget install Gyan.FFmpeg
-```
-or
-```
-choco install ffmpeg
-```
-
-macOS:
-```
-brew install ffmpeg
-```
-
-Linux:
-```
-sudo apt install ffmpeg
-```
-
-🧬 3. Clone the Repository
-```
-git clone https://github.com/prathmesh-nitnaware/techfest-ai-interview.git
-cd techfest-ai-interview
-```
-
-⚡ 4. How to Run the Project
-
-This system runs in three separate terminals — one for each part.
-
-🧠 Terminal 1: Start the AI Model (Ollama)
-```
-ollama serve
-```
-
-If Ollama is already running, you can skip this step.
-
-🧩 Terminal 2: Run the Backend (FastAPI)
-```
-# Go to the project directory
-cd /path/to/TECHFEST
-
-# Create a Python 3.10 virtual environment
-py -3.10 -m venv .venv
-
-# Activate the environment
-# Windows
-.\.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
-
-# Install dependencies
-pip install --upgrade pip
-pip install fastapi "uvicorn[standard]" python-multipart openai-whisper mediapipe opencv-python librosa soundfile requests numpy spacy PyPDF2 gTTS streamlit streamlit-webrtc streamlit-mic-recorder
-
-# Download spaCy model
-python -m spacy download en_core_web_sm
-
-# Run the backend server
-uvicorn backend.app:app --reload
-```
-
-The backend runs on http://127.0.0.1:8000
-
-🖥 Terminal 3: Run the Frontend (Streamlit)
-```
-# Go to the project directory
-cd /path/to/TECHFEST
-
-# Activate the same environment
-# Windows
-.\.venv\Scripts\activate
-# macOS / Linux
-source .venv/bin/activate
-
-# Run Streamlit app
-streamlit run frontend/app.py
-```
-
-🧾 5. Project Summary
-
-Backend (Brain) - FastAPI handles all AI/ML logic
-
-Frontend (Face) - Streamlit serves as a simple test client
-
-AI Model - Ollama (Mistral) powers the intelligence layer
-
-**Featues to add:**
-1. Proper Frontend 
-2. Technical interview part 
-3. Have to connect db to store some video clips
-4. Have to debug some bugs
-5. More enhancement 
+It delivers objective, scalable, and personalized interview preparation at scale.
