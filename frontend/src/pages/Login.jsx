@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
-import Card from '../components/ui/Card';
+import { Mail, Lock, ArrowRight, AlertCircle, Sparkles } from 'lucide-react';
 import Button from '../components/ui/Button';
 import InputField from '../components/forms/InputField';
 import '../styles/theme.css';
@@ -30,83 +29,94 @@ const Login = () => {
       return;
     }
     
-    // This calls the REAL backend now via AuthContext
+    // Calls the backend via AuthContext
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
       navigate(from, { replace: true });
     } else {
-      setError(result.message || "Invalid credentials");
+      setError(result.message || "Invalid credentials. Please try again.");
     }
   };
 
   return (
     <div className="login-root">
       
-      {/* Background Element */}
-      <div className="login-bg-text">LOGIN</div>
+      {/* Premium Background Effects */}
+      <div className="ambient-glow"></div>
+      <div className="noise-overlay"></div>
 
-      <div className="login-container">
-        <Card className="login-card-editorial">
+      <div className="login-container fade-in-up">
+        {/* REPLACED <Card> with <div className="glass-login-card"> */}
+        <div className="glass-login-card">
           
           <div className="login-header">
-            <span className="brand-small">PREP AI.</span>
+            <div className="brand-pill">
+              <Sparkles size={14} className="text-indigo" />
+              <span>PREP AI</span>
+            </div>
             <h1>Welcome Back</h1>
-            <p>Access your dashboard</p>
+            <p>Access your dashboard and resume your training.</p>
           </div>
 
           {error && (
-            <div className="error-banner">
-              <AlertCircle size={16} /> <span>{error}</span>
+            <div className="error-pill shake-animation">
+              <AlertCircle size={18} />
+              <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <InputField
-              type="email"
-              label="EMAIL"
-              name="email"
-              placeholder="YOU@EXAMPLE.COM"
-              value={formData.email}
-              onChange={handleChange}
-              icon={<Mail size={16} />}
-              required
-            />
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="input-wrapper">
+                <InputField
+                  type="email"
+                  label="EMAIL ADDRESS"
+                  name="email"
+                  placeholder="name@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  icon={<Mail size={16} />}
+                  required
+                />
+            </div>
             
-            <InputField
-              type="password"
-              label="PASSWORD"
-              name="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              icon={<Lock size={16} />}
-              required
-            />
+            <div className="input-wrapper">
+                <InputField
+                  type="password"
+                  label="PASSWORD"
+                  name="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  icon={<Lock size={16} />}
+                  required
+                />
+            </div>
 
             <div className="form-options">
-              <label className="checkbox-editorial">
+              <label className="custom-checkbox">
                 <input type="checkbox" /> 
-                <span>Remember me</span>
+                <span className="checkmark"></span>
+                <span className="cb-label">Remember me for 30 days</span>
               </label>
-              {/* FIXED: Changed class to className */}
-              <Link to="/forgot-password" className="link-simple">Forgot Password?</Link>
+              <Link to="/forgot-password" className="link-hover-glow">Forgot Password?</Link>
             </div>
 
             <Button 
               type="submit" 
               variant="primary" 
-              className="w-full btn-editorial primary mt-6" 
+              className="btn-glow-submit w-full mt-4" 
               isLoading={loading}
+              disabled={loading}
             >
-              Sign In <ArrowRight size={16} />
+              {loading ? "Authenticating..." : <> Secure Sign In <ArrowRight size={18} /> </>}
             </Button>
           </form>
 
           <div className="login-footer">
-            <p>New here? <Link to="/signup" className="link-highlight">Create an account</Link></p>
+            <p>Don't have an account? <Link to="/signup" className="link-highlight">Create one now</Link></p>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );

@@ -1,35 +1,39 @@
 /* =========================================
    1. GLOBAL VARIABLES & THEME CONFIG
+   "Glass & Glow" SaaS Aesthetic
    ========================================= */
 :root {
-  /* Editorial Monochrome Palette */
-  --primary: #ffffff;
-  /* Pure White */
-  --secondary: #888888;
-  /* Neutral Grey */
-  --accent: #333333;
-  /* Dark Grey */
+  /* Brand Palette (The "Glow") */
+  --primary: #818cf8;       /* Indigo */
+  --primary-hover: #6366f1; /* Darker Indigo */
+  --accent-blue: #3b82f6;   
+  
+  /* Semantic Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger:  #ef4444;
 
   /* Backgrounds */
-  --bg-dark: #0a0a0a;
-  /* Almost Black */
-  --bg-card: #141414;
-  /* Card Background */
-  --bg-input: #1a1a1a;
+  --bg-dark: #050505;       /* Deep SaaS Black */
+  --bg-card: rgba(15, 15, 18, 0.6); /* Default Glass Bg */
+  
+  /* Glassmorphism Settings */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-focus: rgba(129, 140, 248, 0.4);
 
-  /* Glass/Texture Settings */
-  --border-light: rgba(255, 255, 255, 0.08);
-  --border-focus: rgba(255, 255, 255, 0.3);
+  /* Text Colors */
+  --text-main: #ffffff;
+  --text-muted: #a1a1aa;    /* Cool tech grey */
 
-  /* Text */
-  --text-main: #f0f0f0;
-  --text-muted: #666666;
+  /* Effects & Geometry */
+  --shadow-glow: 0 10px 40px -10px rgba(129, 140, 248, 0.15);
+  --card-radius: 16px;      /* Softer corners for modern UI */
+  --btn-radius: 8px;
 
-  /* Effects */
-  --shadow-subtle: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
-  --card-radius: 4px;
-  /* Sharper corners like reference */
-  --font-main: 'Inter', system-ui, sans-serif;
+  /* Typography */
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* =========================================
@@ -48,50 +52,31 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-dark);
-}
-
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
-}
+/* Sleek Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 
 /* =========================================
    3. UTILITY CLASSES
    ========================================= */
 .page-container {
-  max-width: 1400px;
-  /* Wider layout */
+  max-width: 1200px; /* Standard wide readable width */
   margin: 0 auto;
   padding: 2rem;
   width: 100%;
-  padding-top: 120px;
-  /* Space for header */
+  /* Removed top-padding because Layout.css handles the offset now! */
   position: relative;
   z-index: 2;
 }
 
-.text-gradient {
-  /* Removed gradient for this theme, keeping solid white for elegance */
-  color: var(--primary);
-  background: none;
-  -webkit-text-fill-color: initial;
-}
-
-/* Typography Utils matching reference */
-h1,
-h2,
-h3 {
-  text-transform: uppercase;
-  letter-spacing: 2px;
+/* Typography Utils */
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.2;
   font-weight: 700;
 }
 
@@ -101,10 +86,6 @@ h3 {
   align-items: center;
 }
 
-.w-full {
-  width: 100%;
-}
-
-.text-muted {
-  color: var(--text-muted);
-}
+.w-full { width: 100%; }
+.text-muted { color: var(--text-muted) !important; }
+.text-mono { font-family: var(--font-mono); }

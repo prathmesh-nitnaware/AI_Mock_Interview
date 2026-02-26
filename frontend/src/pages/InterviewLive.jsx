@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { Play, Square, ArrowLeft, Mic, MicOff, Send, CheckCircle, Video, VideoOff } from 'lucide-react';
+import { 
+  Play, Square, ArrowLeft, Mic, MicOff, Send, 
+  Video, VideoOff, Activity, MessageSquareWarning, Zap 
+} from 'lucide-react';
 import './InterviewLive.css'; 
 
 const InterviewLive = () => {
@@ -12,7 +15,7 @@ const InterviewLive = () => {
   const initialQuestion = location.state?.question;
   const config = location.state?.config || { role: "General", intensity: 3 }; 
 
-  const [question, setQuestion] = useState(initialQuestion || { title: "Loading...", description: "Initializing..." });
+  const [question, setQuestion] = useState(initialQuestion || { title: "Loading...", description: "Initializing environment..." });
   const [sessionHistory, setSessionHistory] = useState([]); 
   const [questionIndex, setQuestionIndex] = useState(1);
   const [loadingNext, setLoadingNext] = useState(false);
@@ -34,11 +37,10 @@ const InterviewLive = () => {
   
   const recognitionRef = useRef(null);
   const videoRef = useRef(null);
-  const streamRef = useRef(null); // Holds camera stream for cleanup
+  const streamRef = useRef(null); 
 
   // --- INITIALIZATION & CLEANUP ---
   useEffect(() => {
-    // 1. Setup Speech Recognition
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognitionRef.current = new SpeechRecognition();
@@ -57,20 +59,11 @@ const InterviewLive = () => {
         };
     }
 
-    // 2. Start Camera
     startCamera();
-
-    // 3. Auto-Speak
     if (question?.description) setTimeout(() => speakText(question.description), 1000);
     
-    // --- CRITICAL CLEANUP ---
     return () => { 
-        console.log("Cleaning up Live Session...");
-        
-        // A. Stop AI Voice
         cancelAiSpeech();
-        
-        // B. Stop Camera Stream
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => {
                 track.stop();
@@ -78,10 +71,8 @@ const InterviewLive = () => {
             });
             streamRef.current = null;
         }
-
-        // C. Stop Microphone (Speech Recognition)
         if (recognitionRef.current) {
-            recognitionRef.current.abort(); // Force stop
+            recognitionRef.current.abort(); 
             recognitionRef.current = null;
         }
     };
@@ -89,7 +80,6 @@ const InterviewLive = () => {
 
   const startCamera = async () => {
       try {
-          // Note: audio is false here because speech recognition handles the mic
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
           streamRef.current = stream;
           if (videoRef.current) videoRef.current.srcObject = stream;
@@ -111,9 +101,6 @@ const InterviewLive = () => {
           startCamera();
       }
   };
-
-  // ... (Keep existing Logic Handlers: handleNextQuestion, handleSubmit, speakText, etc.) ...
-  // ... (Paste the rest of the logic logic functions from the previous response here) ...
 
   const handleNextQuestion = async () => {
     cancelAiSpeech();
@@ -198,98 +185,133 @@ const InterviewLive = () => {
     utterance.onend = () => setIsAiSpeaking(false);
     window.speechSynthesis.speak(utterance);
   };
+  
   const cancelAiSpeech = () => {
     window.speechSynthesis.cancel();
     setIsAiSpeaking(false);
   };
 
-  // --- RENDER ---
+  const currentWPM = isListening && speechStartTime 
+    ? Math.round((userAnswer.split(" ").length / ((Date.now() - speechStartTime)/1000)) * 60) || 0 
+    : 0;
+
   return (
     <div className="live-container">
+      
+      {/* --- LEFT PANEL: AI CONTEXT --- */}
       <div className="question-panel">
         <div className="panel-header">
-           <span className="ai-label">Question {questionIndex} / {config.intensity}</span>
-           <button onClick={() => navigate('/dashboard')} className="back-btn"><ArrowLeft size={16}/> Quit</button>
+           <button onClick={() => navigate('/dashboard')} className="glass-btn back-btn">
+             <ArrowLeft size={16}/> End Session
+           </button>
+           <div className="progress-pill">
+              <Zap size={14} className="text-indigo-400" />
+              <span>{questionIndex} / {config.intensity}</span>
+           </div>
         </div>
         
-        <div className={`ai-avatar-container ${isAiSpeaking ? 'pulsing' : ''}`}>
-            <div className="ai-circle"><div className="wave"></div></div>
-            <p className="ai-status-text">
-                {loadingNext ? "GENERATING..." : isAiSpeaking ? "AI SPEAKING..." : "AI LISTENING..."}
-            </p>
-            {isListening && <div className="analyzing-badge">● Analyzing Tone & Clarity</div>}
+        <div className={`ai-avatar-wrapper ${isAiSpeaking ? 'is-speaking' : ''} ${isListening ? 'is-listening' : ''}`}>
+            <div className="ai-orb"></div>
+            <div className="orb-glow"></div>
+            <div className="orb-ring ring-1"></div>
+            <div className="orb-ring ring-2"></div>
+        </div>
+        
+        <div className="ai-status">
+            <span className="status-dot"></span>
+            {loadingNext ? "Synthesizing next prompt..." : isAiSpeaking ? "PrepAI is speaking..." : isListening ? "Listening to your response..." : "Awaiting your interaction"}
         </div>
 
         {!loadingNext && (
-            <>
+            <div className="question-content fade-in-up">
                 <h1 className="problem-title">{question.title}</h1>
-                <div className="desc-box"><p>{question.description}</p></div>
+                <p className="desc-box">{question.description}</p>
                 <div className="ai-controls">
-                    <button onClick={() => speakText(question.description)} className="control-btn"><Play size={20} /> Replay</button>
-                    <button onClick={cancelAiSpeech} className="control-btn"><Square size={20} /> Stop</button>
+                    <button onClick={() => speakText(question.description)} className="glass-btn"><Play size={16} /> Replay Audio</button>
+                    <button onClick={cancelAiSpeech} className="glass-btn"><Square size={16} /> Stop</button>
                 </div>
-            </>
+            </div>
         )}
       </div>
 
+      {/* --- RIGHT PANEL: USER INTERACTION --- */}
       <div className="interaction-panel">
         <div className="interaction-header">
-            <h2>Your Answer</h2>
-            <div className="live-metrics">
-                {isListening && (
-                    <>
-                        <span>WPM: {Math.round((userAnswer.split(" ").length / ((Date.now() - speechStartTime)/1000)) * 60) || 0}</span>
-                        <span>Fillers: {fillerWordCount}</span>
-                    </>
-                )}
+            <h2 className="section-title">Live Transcript</h2>
+            <div className="live-metrics-container">
+                <div className="metric-pill">
+                    <Activity size={14} />
+                    <span>{currentWPM} WPM</span>
+                </div>
+                <div className={`metric-pill ${fillerWordCount > 3 ? 'warn' : ''}`}>
+                    <MessageSquareWarning size={14} />
+                    <span>{fillerWordCount} Fillers</span>
+                </div>
             </div>
         </div>
         
-        <textarea 
-            className="transcript-box"
-            value={userAnswer}
-            onChange={(e) => setUserAnswer(e.target.value)}
-            placeholder="Tap the mic and speak naturally..."
-            disabled={submitting || loadingNext}
-        />
+        <div className={`transcript-wrapper ${isListening ? 'recording' : ''}`}>
+            <textarea 
+                className="transcript-box"
+                value={userAnswer}
+                onChange={(e) => setUserAnswer(e.target.value)}
+                placeholder="Tap the microphone to begin speaking. Your words will appear here..."
+                disabled={submitting || loadingNext}
+            />
+        </div>
         
-        <div className="voice-controls">
-            <button onClick={toggleListening} className={`mic-btn ${isListening ? 'active' : ''}`}>
-                {isListening ? <MicOff size={32} /> : <Mic size={32} />}
+        <div className="action-dock">
+            <div className="voice-controls">
+                <button 
+                  onClick={toggleListening} 
+                  className={`mic-trigger ${isListening ? 'active' : ''}`}
+                >
+                    {isListening ? <MicOff size={28} /> : <Mic size={28} />}
+                </button>
+                <p className="hint-text">{isListening ? "Tap to pause" : "Tap to speak"}</p>
+            </div>
+
+            <button onClick={handleSubmit} disabled={submitting || !userAnswer || loadingNext} className="submit-btn-modern">
+                {submitting ? "Analyzing Response..." : <> Submit Answer <Send size={16}/> </>}
             </button>
-            <p className="hint-text">{isListening ? "Listening..." : "Tap Mic to Answer"}</p>
         </div>
 
-        <button onClick={handleSubmit} disabled={submitting || !userAnswer || loadingNext} className="submit-voice-btn">
-            {submitting ? "Analyzing..." : <> <Send size={18}/> Submit Response </>}
-        </button>
-
+        {/* --- FEEDBACK OVERLAY --- */}
         {aiFeedback && (
-          <div className="feedback-overlay">
-            <div className="feedback-card">
-              <h2>AI Analysis</h2>
-              <div className="score-row">
-                 <div className="score-item"><span className="label">Clarity</span><span className="value green">{aiFeedback.clarity_score}/10</span></div>
-                 <div className="score-item"><span className="label">Confidence</span><span className="value blue">{aiFeedback.confidence_score}/10</span></div>
+          <div className="feedback-glass-overlay fade-in">
+            <div className="feedback-card-modern scale-in">
+              <div className="fc-header">
+                <h2>AI Evaluation</h2>
+                <div className="score-badges">
+                  <div className="s-badge clarity">Clarity: {aiFeedback.clarity_score}/10</div>
+                  <div className="s-badge confidence">Confidence: {aiFeedback.confidence_score}/10</div>
+                </div>
               </div>
-              <p className="feedback-text">{aiFeedback.feedback}</p>
               
-              <button onClick={handleNextQuestion} className="continue-btn">
-                  {questionIndex >= config.intensity ? "View Final Report" : "Next Question →"}
+              <div className="fc-body">
+                <p className="feedback-text">{aiFeedback.feedback}</p>
+              </div>
+              
+              <button onClick={handleNextQuestion} className="next-q-btn">
+                  {questionIndex >= config.intensity ? "Conclude Interview & View Report" : "Proceed to Next Question"}
               </button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="self-view-container">
+      {/* --- PIP CAMERA --- */}
+      <div className="self-view-floating">
         {cameraActive ? (
             <video ref={videoRef} autoPlay playsInline muted className="self-video" />
         ) : (
-            <div className="camera-off-placeholder"><VideoOff size={24} color="#666" /><span>Camera Off</span></div>
+            <div className="camera-off-placeholder">
+              <VideoOff size={20} className="mb-2 opacity-50" />
+              <span>Camera Disabled</span>
+            </div>
         )}
-        <button onClick={toggleCamera} className="toggle-cam-btn" title="Toggle Camera">
-            {cameraActive ? <Video size={16}/> : <VideoOff size={16}/>}
+        <button onClick={toggleCamera} className="mini-glass-btn toggle-cam" title="Toggle Camera">
+            {cameraActive ? <Video size={14}/> : <VideoOff size={14}/>}
         </button>
       </div>
 

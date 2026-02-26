@@ -2,56 +2,67 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import ProtectedRoute from '../components/ProtectedRoute';
+
+// Public Pages
 import Landing from '../pages/Landing';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
+
+// Protected Pages
 import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
 import ResumeUpload from '../pages/ResumeUpload';
 import ResumeResult from '../pages/ResumeResult'; 
-import InterviewSetup from '../pages/InterviewSetup';
+
+// Interview Flow
+import Interview from '../pages/Interview'; // <-- Changed from InterviewSetup
 import InterviewSession from '../pages/InterviewSession'; 
 import InterviewLive from '../pages/InterviewLive';       
 import InterviewReport from '../pages/InterviewReport';   
-import CodingSetup from '../pages/CodingSetup';
-import CodingArena from '../pages/CodingArena';           
-import CodingReport from '../pages/CodingReport';         
+
+// Coding Flow
+import CodingArena from '../components/Interview/CodingArena';           
+import CodingEditor from '../components/Interview/CodeEditor'; 
+import CodingReport from '../components/Interview/CodingRport';
+
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Wrap EVERYTHING in Layout */}
-      <Route element={<Layout />}>
-        
-        {/* Public Routes */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+      
+      {/* --- PUBLIC ROUTES (No Global Layout) --- */}
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
-        {/* Protected Application Routes */}
-        <Route element={<ProtectedRoute />}>
+      {/* --- PROTECTED ROUTES --- */}
+      <Route element={<ProtectedRoute />}>
+        
+        {/* Immersive/Fullscreen Routes (No Global Layout) */}
+        <Route path="/interview/session" element={<InterviewSession />} /> {/* Match the navigate path */}
+        <Route path="/interview/live" element={<InterviewLive />} />
+        <Route path="/coding/arena" element={<CodingArena />} />
+
+        {/* Standard App Routes (Wrapped in Global Layout & Navbar) */}
+        <Route element={<Layout />}>
           
-          {/* Main Dashboard */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           
-          {/* 1. Resume Flow */}
+          {/* Resume Flow */}
           <Route path="/resume/upload" element={<ResumeUpload />} />
           <Route path="/resume/result" element={<ResumeResult />} />
 
-          {/* 2. Voice Interview Flow */}
-          <Route path="/interview/setup" element={<InterviewSetup />} />
-          <Route path="/interview/room" element={<InterviewSession />} />
-          <Route path="/interview/live" element={<InterviewLive />} />
+          {/* Voice Interview Config & Report */}
+          <Route path="/interview/setup" element={<Interview />} /> {/* Using the merged Interview component */}
           <Route path="/interview/report" element={<InterviewReport />} />
           
-          {/* 3. Coding Round Flow */}
-          <Route path="/coding/setup" element={<CodingSetup />} />
+          {/* Coding Round Config & Report */}
           <Route path="/coding/arena" element={<CodingArena />} />
+          <Route path="/coding/editor" element={<CodingEditor />} />
           <Route path="/coding/report" element={<CodingReport />} />
           
         </Route>
-
       </Route>
 
       {/* Fallback - Redirects to Home if route doesn't exist */}

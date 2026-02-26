@@ -8,15 +8,22 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // 🚀 PRODUCTION URL (Connects to your live Render Backend)
-  // We use this instead of localhost so Vercel can find the server.
-  const API_URL = "https://prep-ai-backend-z5rk.onrender.com"; 
+  // 🚀 DYNAMIC URL LOGIC
+  // If the app is running on localhost, it uses the local backend.
+  // If it's running on the web, it uses the Render backend.
+  const API_URL = window.location.hostname === "localhost" 
+    ? "http://localhost:5000" 
+    : "https://prep-ai-backend-z5rk.onrender.com";
 
   // 1. Check for existing session on startup
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        localStorage.removeItem('user');
+      }
     }
     setLoading(false);
   }, []);
@@ -24,9 +31,7 @@ export const AuthProvider = ({ children }) => {
   // 2. REAL Login Function
   const login = async (email, password) => {
     setLoading(true);
-
     try {
-      // Fetch from Render Backend
       const response = await fetch(`${API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -39,33 +44,29 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Login successful
-        const user = { 
-          id: "usr_" + Date.now(), 
+        const userData = { 
+          id: data.id || "usr_" + Date.now(), 
           name: email.split('@')[0], 
           email: email, 
           role: "candidate" 
         };
 
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('token', 'authenticated');
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('token', data.token || 'authenticated');
 
         setLoading(false);
         navigate('/dashboard');
         return { success: true };
       } else {
-        // Login failed - Server returned an error
         setLoading(false);
         return { success: false, message: data.error || "Login failed" };
       }
     } catch (error) {
-      // Network error (Backend might be sleeping)
       setLoading(false);
-      console.error("Login network error:", error);
       return { 
         success: false, 
-        message: "🌐 Server is waking up (Free Tier). Please try again in 30 seconds." 
+        message: "🌐 Connection Error. If using the web link, the server may be waking up. Please try again in 30s." 
       };
     }
   };
@@ -73,9 +74,7 @@ export const AuthProvider = ({ children }) => {
   // 3. REAL Signup Function
   const signup = async (name, email, password) => {
     setLoading(true);
-
     try {
-      // Fetch from Render Backend
       const response = await fetch(`${API_URL}/api/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,32 +87,29 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Signup successful
-        const user = { 
-          id: "usr_" + Date.now(), 
+        const userData = { 
+          id: data.id || "usr_" + Date.now(), 
           name: name, 
           email: email, 
           role: "candidate" 
         };
 
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('token', 'authenticated');
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('token', data.token || 'authenticated');
 
         setLoading(false);
         navigate('/dashboard');
         return { success: true };
       } else {
-        // Signup failed
         setLoading(false);
         return { success: false, message: data.error || "Signup failed" };
       }
     } catch (error) {
       setLoading(false);
-      console.error("Signup network error:", error);
       return { 
         success: false, 
-        message: "🌐 Server is waking up (Free Tier). Please try again in 30 seconds." 
+        message: "🌐 Connection Error. Server is likely warming up." 
       };
     }
   };
@@ -132,29 +128,25 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     signup,
-    logout
+    logout,
+    API_URL // Exported so other services can use it
   };
 
   return (
     <AuthContext.Provider value={value}>
       {!loading && children}
       
-      {/* Loading Overlay */}
+      {/* --- THEMED LOADING OVERLAY --- */}
       {loading && (
-        <div style={{
-          position: 'fixed', inset: 0, background: '#0a0a0a', 
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
-        }}>
-          <div style={{color: 'white', fontFamily: 'sans-serif'}}>
-             Connecting to Server...
-          </div>
+        <div className="loading-screen">
+          <div className="neon-spinner-large"></div>
+          <p className="loading-text">Establishing Secure Link...</p>
         </div>
       )}
     </AuthContext.Provider>
   );
 };
 
-// Custom Hook for easy access
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

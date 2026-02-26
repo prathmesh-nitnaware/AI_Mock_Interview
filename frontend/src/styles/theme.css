@@ -1,14 +1,7 @@
 /* =========================================
    THEME.CSS
-   Editorial / Monochrome Design System
+   Global Components (Buttons, Cards, Text)
    ========================================= */
-
-:root {
-  --font-main: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace; /* Optional tech feel */
-  
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-}
 
 /* -----------------------------------------
    1. TYPOGRAPHY UTILITIES
@@ -16,25 +9,18 @@
 .text-editorial-h1 {
   font-family: var(--font-main);
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -2px;
-  line-height: 0.9;
+  letter-spacing: -1.5px; /* Slightly softer than before */
+  line-height: 1.1;
   color: #ffffff;
 }
 
 .text-editorial-sub {
   font-family: var(--font-main);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   font-size: 0.85rem;
-  color: #888;
-}
-
-.text-mono {
-  font-family: var(--font-mono, monospace);
-  font-size: 0.8rem;
-  color: #666;
+  color: var(--primary); /* Now uses Indigo */
 }
 
 /* -----------------------------------------
@@ -45,66 +31,60 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 16px 32px;
-  font-size: 0.9rem;
+  padding: 14px 28px;
+  font-size: 0.95rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.05);
   color: white;
   transition: all 0.3s var(--ease-out-expo);
   cursor: pointer;
-  border-radius: 2px; /* Minimal radius */
+  border-radius: var(--btn-radius); /* Softer rounded edges */
 }
 
-.btn-editorial:hover {
-  background: white;
-  color: black;
-  border-color: white;
+.btn-editorial:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .btn-editorial.primary {
   background: white;
   color: black;
-  border-color: white;
+  border-color: transparent;
 }
 
-.btn-editorial.primary:hover {
-  background: #e0e0e0;
+.btn-editorial.primary:hover:not(:disabled) {
+  background: #f0f0f0;
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15); /* Soft glow */
+}
+
+.btn-editorial:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* -----------------------------------------
-   3. CARD VARIANTS
+   3. CARD VARIANTS (The Glass Upgrade)
    ----------------------------------------- */
 .card-editorial {
-  background: #0f0f0f;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
   padding: 2.5rem;
-  transition: transform 0.4s var(--ease-out-expo), border-color 0.3s;
+  border-radius: var(--card-radius);
+  transition: transform 0.4s var(--ease-out-expo), box-shadow 0.4s, border-color 0.3s;
   position: relative;
   overflow: hidden;
 }
 
 .card-editorial:hover {
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-5px);
-}
-
-/* Subtle inner shine on hover */
-.card-editorial::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-}
-
-.card-editorial:hover::after {
-  opacity: 1;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* -----------------------------------------
@@ -132,3 +112,4 @@
 .delay-100 { animation-delay: 0.1s; }
 .delay-200 { animation-delay: 0.2s; }
 .delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }

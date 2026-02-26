@@ -5,16 +5,28 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
-    <title>AI Mock Interview | Master Your Career</title>
+    <title>Prep AI | Master Your Technical & Soft Skills</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
     <style>
-      /* Quick reset to prevent white flash before CSS loads */
-      body { background-color: #0a0b1e; margin: 0; }
+      /* PREVENT FLASH OF UNSTYLED CONTENT (FOUC)
+         We use #050505 to match the global.css background exactly.
+      */
+      body { 
+        background-color: #050505; 
+        margin: 0; 
+        color: #ffffff;
+      }
+
+      /* Custom selection color for that extra premium touch */
+      ::selection {
+        background: rgba(129, 140, 248, 0.3);
+        color: #ffffff;
+      }
     </style>
   </head>
   <body>

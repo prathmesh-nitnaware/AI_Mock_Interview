@@ -1,5 +1,11 @@
-const TOKEN_KEY = 'ai_mock_token';
-const USER_KEY = 'ai_mock_user';
+/**
+ * AUTH UTILITIES
+ * Synchronized with AuthContext for seamless session management.
+ */
+
+// These MUST match the keys used in AuthContext.jsx
+const TOKEN_KEY = 'token';
+const USER_KEY = 'user';
 
 /**
  * Check if the user is currently authenticated
@@ -7,7 +13,8 @@ const USER_KEY = 'ai_mock_user';
  */
 export const isAuthenticated = () => {
   const token = localStorage.getItem(TOKEN_KEY);
-  return !!token;
+  // Returns true if token exists and isn't an empty string
+  return !!token && token !== 'undefined';
 };
 
 /**
@@ -23,7 +30,9 @@ export const getToken = () => {
  * @param {string} token 
  */
 export const setToken = (token) => {
-  localStorage.setItem(TOKEN_KEY, token);
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
 };
 
 /**
@@ -42,7 +51,9 @@ export const getUser = () => {
   try {
     return userStr ? JSON.parse(userStr) : null;
   } catch (e) {
-    console.error("Error parsing user data", e);
+    console.error("Session Corrupted: Error parsing user data", e);
+    // If the data is unreadable, clear it to prevent app crashes
+    localStorage.removeItem(USER_KEY);
     return null;
   }
 };
@@ -52,7 +63,9 @@ export const getUser = () => {
  * @param {object} user 
  */
 export const setUser = (user) => {
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  if (user) {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  }
 };
 
 /**
@@ -72,9 +85,11 @@ export const clearAuth = () => {
 
 /**
  * Helper to get standard Authorization headers
+ * Useful for fetch() or axios calls in services/api.js
  * Usage: headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' }
  */
 export const getAuthHeaders = () => {
   const token = getToken();
+  // Ensure we prefix with 'Bearer ' for standard JWT backend expectations
   return token ? { Authorization: `Bearer ${token}` } : {};
 };

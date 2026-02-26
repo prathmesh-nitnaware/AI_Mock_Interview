@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, FileText, X, AlertCircle } from 'lucide-react';
-import "./components.css"; // Shared styles + specific upload styles below
+import "./components.css"; // Uses the globally upgraded glass & glow styles
 
 const FileUpload = ({ onFileSelect, accept = ".pdf,.docx", label = "Upload Resume" }) => {
   const [dragActive, setDragActive] = useState(false);
@@ -40,7 +40,7 @@ const FileUpload = ({ onFileSelect, accept = ".pdf,.docx", label = "Upload Resum
 
   // Validation & State Update
   const validateAndSetFile = (file) => {
-    // Check file type (simple extension check)
+    // Check file type
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const allowedExtensions = accept.replace(/\./g, '').split(',');
     
@@ -49,7 +49,7 @@ const FileUpload = ({ onFileSelect, accept = ".pdf,.docx", label = "Upload Resum
       return;
     }
 
-    // Check file size (e.g., max 5MB)
+    // Check file size (Max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError("File is too large (Max 5MB)");
       return;
@@ -70,7 +70,7 @@ const FileUpload = ({ onFileSelect, accept = ".pdf,.docx", label = "Upload Resum
   return (
     <div className="file-upload-wrapper">
       <div 
-        className={`upload-dropzone glass-card ${dragActive ? 'drag-active' : ''} ${error ? 'border-error' : ''}`}
+        className={`upload-dropzone ${dragActive ? 'drag-active' : ''} ${error ? 'border-error' : ''}`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
@@ -90,9 +90,8 @@ const FileUpload = ({ onFileSelect, accept = ".pdf,.docx", label = "Upload Resum
             <div className="icon-glow-circle">
               <UploadCloud size={32} />
             </div>
-            <h4 className="text-gradient">{label}</h4>
-            <p className="upload-subtext">Drag & drop or click to browse</p>
-            <span className="file-types">Supports: PDF, DOCX</span>
+            <span className="upload-subtext">{label}</span>
+            <span className="file-types">Drag & drop or click to browse ({accept})</span>
           </div>
         ) : (
           <div className="file-preview-card" onClick={(e) => e.stopPropagation()}>
@@ -105,7 +104,7 @@ const FileUpload = ({ onFileSelect, accept = ".pdf,.docx", label = "Upload Resum
                 <span className="file-size">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
               </div>
             </div>
-            <button className="remove-btn" onClick={clearFile}>
+            <button className="remove-btn" onClick={clearFile} title="Remove file">
               <X size={18} />
             </button>
           </div>
@@ -113,7 +112,7 @@ const FileUpload = ({ onFileSelect, accept = ".pdf,.docx", label = "Upload Resum
       </div>
 
       {error && (
-        <div className="error-message">
+        <div className="error-message fade-in">
           <AlertCircle size={16} />
           <span>{error}</span>
         </div>

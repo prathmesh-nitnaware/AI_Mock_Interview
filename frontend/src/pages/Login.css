@@ -1,117 +1,229 @@
 /* =========================================
    LOGIN.CSS
-   Centered Minimalist Layout
+   Glassmorphism & Premium Auth Layout
    ========================================= */
 
 .login-root {
-  min-height: 100vh;
-  background-color: #0a0a0a;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
+    min-height: 100vh;
+    background-color: #050505;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* Background Typographic Element */
-.login-bg-text {
-  position: absolute;
-  font-size: 20vw;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.02);
-  pointer-events: none;
-  z-index: 0;
-  white-space: nowrap;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  letter-spacing: -10px;
+/* Background Effects */
+.ambient-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.noise-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Animations */
+.fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.shake-animation {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    20%, 80% { transform: translate3d(2px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
 .login-container {
-  width: 100%;
-  max-width: 420px;
-  position: relative;
-  z-index: 10;
-  padding: 2rem;
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 10;
+    padding: 2rem;
 }
 
-.login-card-editorial {
-  background: #0f0f0f;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 3rem 2.5rem;
-  border-radius: 4px; /* Sharp corners */
-  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+/* Glass Card Upgrade */
+.glass-login-card {
+    background: rgba(15, 15, 18, 0.7);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 3.5rem 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .login-header {
-  text-align: center;
-  margin-bottom: 3rem;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.brand-small {
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: #666;
-  display: block;
-  margin-bottom: 1rem;
+.brand-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(129, 140, 248, 0.1);
+    border: 1px solid rgba(129, 140, 248, 0.2);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 1.5rem;
 }
+
+.text-indigo { color: #818cf8; }
 
 .login-header h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: -1px;
-  margin-bottom: 0.5rem;
-  color: white;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 0.5rem;
+    color: white;
 }
 
 .login-header p {
-  color: #666;
-  font-size: 0.95rem;
+    color: #a1a1aa;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
-/* Form Options */
+/* Error State */
+.error-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+}
+
+/* Form Spacing */
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-wrapper {
+    margin-bottom: 1.25rem;
+}
+
+/* Form Options (Checkbox & Links) */
 .form-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 1.5rem 0;
-  font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0 2rem 0;
+    font-size: 0.85rem;
 }
 
-.checkbox-editorial {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  color: #888;
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: #a1a1aa;
+    transition: color 0.2s;
 }
 
-.checkbox-editorial input {
-  accent-color: white;
-  width: 14px;
-  height: 14px;
+.custom-checkbox:hover { color: white; }
+
+.custom-checkbox input {
+    accent-color: #818cf8;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
 }
 
-.link-simple {
-  color: #666;
-  text-decoration: none;
-  transition: color 0.2s;
+.link-hover-glow {
+    color: #a1a1aa;
+    text-decoration: none;
+    transition: all 0.2s;
 }
 
-.link-simple:hover {
-  color: white;
+.link-hover-glow:hover {
+    color: #818cf8;
+    text-shadow: 0 0 10px rgba(129, 140, 248, 0.5);
 }
 
+/* Main Button */
+.btn-glow-submit {
+    background: white;
+    color: black;
+    border: none;
+    padding: 14px;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-glow-submit:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
+}
+
+.btn-glow-submit:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* Footer */
 .login-footer {
-  margin-top: 3rem;
-  text-align: center;
-  color: #666;
-  font-size: 0.9rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  padding-top: 1.5rem;
+    margin-top: 2.5rem;
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.mt-6 { margin-top: 2rem; }
+.link-highlight {
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    margin-left: 4px;
+    transition: color 0.2s;
+}
+
+.link-highlight:hover {
+    color: #818cf8;
+}
+
+.mt-4 { margin-top: 1rem; }

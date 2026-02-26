@@ -4,3 +4,7 @@ pymongo
 python-dotenv
 gunicorn
 dnspython
+pyjwt
+werkzeug
+google-generativeai
+PyPDF2

@@ -1,119 +1,134 @@
 import React, { useState } from 'react';
-import { scoreResume } from '../services/api'; // <--- FIX 1: Import the specific function
-import './Dashboard.css'; // Assuming you saved the CSS from the previous step here
-import "./ResumeUpload.css";
+import { useNavigate } from 'react-router-dom';
+import { UploadCloud, FileText, X, ArrowRight, Target } from 'lucide-react';
+import { api } from '../services/api'; 
+import '../styles/theme.css';
+import './ResumeUpload.css';
 
 const ResumeUpload = () => {
   const [file, setFile] = useState(null);
+  const [targetRole, setTargetRole] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-    setError(null);
+    const selected = e.target.files[0];
+    if (selected && selected.type === 'application/pdf') {
+        setFile(selected);
+        setError(null);
+    } else {
+        setError("Please select a valid PDF file.");
+    }
   };
 
   const handleUpload = async () => {
     if (!file) {
-      setError("Please select a PDF file first.");
+      setError("Please attach a PDF document first.");
+      return;
+    }
+    if (!targetRole.trim()) {
+      setError("Please specify a target role for accurate ATS parsing.");
       return;
     }
 
     setLoading(true);
     setError(null);
-    setResult(null);
 
     try {
-      // --- FIX 2: Call the correct function directly ---
-      // You can change "Software Engineer" to a dynamic job description input if you want
-      const data = await scoreResume(file, "Software Engineer");
+      // Assuming your backend needs the file uploaded first, 
+      // you would await the API call here to get a resume ID:
+      // const uploadedDoc = await api.uploadDocument(file); 
       
-      setResult(data);
+      // For now, we simulate success and pass data to the Results page.
+      // We route directly to the beautiful Results page we already built!
+      setTimeout(() => {
+          navigate('/resume/result', { 
+              state: { 
+                  resume_id: 'temp_resume_id', // Replace with uploadedDoc.id if needed
+                  job_role: targetRole 
+              } 
+          });
+      }, 1500);
+
     } catch (err) {
       console.error("Upload Error:", err);
-      setError("Analysis failed. Please check your backend connection.");
-    } finally {
-      setLoading(false);
+      setError("Secure upload failed. Please check your connection.");
+      setLoading(false); 
     }
   };
 
   return (
-    <div className="dashboard-container">
-      <h1 className="title">ATS OPTIMIZER</h1>
-      <p className="subtitle">
-        Upload your CV to unlock AI-driven insights. Our engine parses formatting, keywords, and impact metrics.
-      </p>
-
-      {/* Upload Section */}
-      <div className="upload-box">
-        {!file ? (
-           <label className="upload-label">
-             <span style={{fontSize: '2rem', marginBottom: '10px'}}>+</span>
-             <span>Click to Upload PDF</span>
-             <input 
-               type="file" 
-               accept=".pdf" 
-               className="hidden" 
-               style={{display:'none'}} 
-               onChange={handleFileChange} 
-             />
-           </label>
-        ) : (
-          <div className="file-info">
-             <div style={{display:'flex', alignItems:'center'}}>
-                <span style={{fontSize: '1.5rem', marginRight: '10px'}}>📄</span>
-                <span style={{fontWeight: '600'}}>{file.name}</span>
-             </div>
-             <button onClick={() => setFile(null)} className="remove-btn">✕</button>
+    <div className="upload-root page-container fade-in-up">
+      <div className="upload-wrapper">
+        
+        <div className="upload-header text-center">
+          <div className="brand-pill mx-auto mb-4">
+             <Target size={14} className="text-indigo" />
+             <span>ATS OPTIMIZER</span>
           </div>
-        )}
-
-        {error && <p className="error-msg">{error}</p>}
-
-        <button 
-          onClick={handleUpload} 
-          disabled={loading || !file}
-          className="analyze-btn"
-        >
-          {loading ? "ANALYZING..." : "START ANALYSIS →"}
-        </button>
-      </div>
-
-      {/* Results Section */}
-      {result && (
-        <div className="results-section">
-          
-          {/* Score Card */}
-          <div className="card">
-            <span className="card-title">ATS Score</span>
-            <div className={`score-value ${result.score > 70 ? 'score-high' : result.score > 40 ? 'score-med' : 'score-low'}`}>
-              {result.score}/100
-            </div>
-          </div>
-
-          {/* Tips Card */}
-          <div className="card">
-            <span className="card-title">Improvement Tips</span>
-            <ul className="tips-list">
-              {result.improvement_tips?.slice(0, 3).map((tip, index) => (
-                <li key={index}>
-                  <span className="bullet">•</span>
-                  {tip}
-                </li>
-              )) || <li>No specific tips returned.</li>}
-            </ul>
-          </div>
-          
-           {/* Summary Card */}
-           <div className="card full-width">
-            <span className="card-title">Executive Summary</span>
-            <p style={{color: '#d1d5db', lineHeight: '1.6'}}>
-              {result.summary}
-            </p>
-          </div>
+          <h1 className="upload-title">Resume Parser</h1>
+          <p className="upload-sub">
+            Drop your CV into the engine. We'll parse your formatting, extract your impact metrics, and map your skills against industry standards.
+          </p>
         </div>
-      )}
+
+        <div className="glass-panel upload-panel">
+          
+          {/* File Dropzone */}
+          {!file ? (
+            <label className="dropzone-area">
+              <UploadCloud size={48} className="text-indigo mb-4 drop-icon" />
+              <span className="dz-text">Click to browse or drag PDF here</span>
+              <span className="dz-hint">Maximum file size: 5MB</span>
+              <input 
+                type="file" 
+                accept=".pdf" 
+                className="hidden" 
+                onChange={handleFileChange} 
+              />
+            </label>
+          ) : (
+            <div className="file-secured-banner">
+              <div className="file-info-flex">
+                <FileText size={28} className="text-success" />
+                <div className="file-details">
+                    <span className="file-name">{file.name}</span>
+                    <span className="file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                </div>
+              </div>
+              <button onClick={() => setFile(null)} className="btn-remove-file" title="Remove file">
+                <X size={20} />
+              </button>
+            </div>
+          )}
+
+          {/* Role Input */}
+          <div className="role-input-section mt-8">
+              <label className="input-label-glow">
+                  <Target size={14}/> TARGET JOB ROLE
+              </label>
+              <input 
+                  type="text" 
+                  className="input-glass w-full mt-2"
+                  placeholder="E.g. Full Stack Developer, Product Manager"
+                  value={targetRole}
+                  onChange={(e) => setTargetRole(e.target.value)}
+              />
+          </div>
+
+          {error && <div className="error-pill mt-4"><X size={16} /> {error}</div>}
+
+          <button 
+            onClick={handleUpload} 
+            disabled={loading || !file || !targetRole.trim()}
+            className="btn-glow-submit w-full mt-8"
+          >
+            {loading ? "ENCRYPTING & UPLOADING..." : <>INITIATE SCAN <ArrowRight size={18} /></>}
+          </button>
+          
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
-import Card from '../components/ui/Card';
+import { User, Mail, Lock, ArrowRight, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import InputField from '../components/forms/InputField';
-import '../styles/theme.css'; // Global Theme
-import './Signup.css'; // Specific Styles
+import '../styles/theme.css'; 
+import './Signup.css'; 
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -27,6 +26,8 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // 1. Frontend Validation
     if (!formData.name || !formData.email || !formData.password) {
       setError("All fields are required.");
       return;
@@ -35,9 +36,26 @@ const Signup = () => {
       setError("Passwords do not match.");
       return;
     }
-    const result = await signup(formData.name, formData.email, formData.password);
-    if (!result.success) {
-      setError(result.message || "Failed to create account.");
+
+    // 2. Data Preparation
+    // Passing as an object ensures your AuthContext/API layer receives the correct keys
+    const signupPayload = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password
+    };
+
+    try {
+      const result = await signup(signupPayload);
+      
+      if (result && result.success) {
+        // Redirect to dashboard on successful account initialization
+        navigate('/dashboard'); 
+      } else {
+        setError(result?.message || "Failed to create account. Please try again.");
+      }
+    } catch (err) {
+      setError(err?.error || "A connection error occurred. Is the backend running?");
     }
   };
 
@@ -45,95 +63,120 @@ const Signup = () => {
     <div className="signup-root">
       <div className="signup-split">
         
-        {/* Left Side: Visual/Brand */}
+        {/* --- Left Side: Visual / Value Prop --- */}
         <div className="signup-visual">
-          <div className="visual-content">
-            <span className="brand-tag">PREP AI.</span>
+          <div className="ambient-glow-brand"></div>
+          <div className="noise-overlay"></div>
+          
+          <div className="visual-content fade-in-up">
+            <div className="brand-pill-light mb-6">
+              <Sparkles size={14} className="text-indigo-light" />
+              <span>PREP AI 2.0</span>
+            </div>
+            
             <h1 className="visual-heading">Join the <br/> Elite.</h1>
             <p className="visual-text">
-              Master your interview skills with AI-driven analysis. 
-              Join thousands of professionals securing top-tier roles.
+              Master your interview skills with AI-driven analysis. Join professionals securing roles at top-tier tech companies.
             </p>
+
+            <ul className="value-props-list mt-8">
+              <li><CheckCircle2 size={18} className="text-success" /> Real-time Voice & Pace Analysis</li>
+              <li><CheckCircle2 size={18} className="text-success" /> Contextual ATS Resume Scoring</li>
+              <li><CheckCircle2 size={18} className="text-success" /> Personalized Coding Dojo</li>
+            </ul>
           </div>
-          <div className="visual-footer">
-            <span>V 2.0</span>
-            <span>© 2025</span>
+          
+          <div className="visual-footer fade-in-up delay-200">
+            <span>SECURE ENCLAVE</span>
+            <span>SYSTEM.ONLINE</span>
           </div>
         </div>
 
-        {/* Right Side: Form */}
+        {/* --- Right Side: Form --- */}
         <div className="signup-form-container">
-          <Card className="signup-card-editorial">
+          <div className="ambient-glow-mobile"></div>
+
+          {/* Glassmorphism Container */}
+          <div className="glass-signup-card fade-in-up delay-200">
             <div className="form-header">
               <h2>Create Account</h2>
-              <p>Start your journey today.</p>
+              <p>Initialize your personalized training environment.</p>
             </div>
 
             {error && (
-              <div className="error-banner">
+              <div className="error-pill shake-animation">
                 <AlertCircle size={16} /> <span>{error}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-              <InputField
-                label="FULL NAME"
-                name="name"
-                placeholder="JOHN DOE"
-                value={formData.name}
-                onChange={handleChange}
-                icon={<User size={16} />}
-                required
-              />
+            <form onSubmit={handleSubmit} className="signup-form">
+              <div className="input-wrapper">
+                  <InputField
+                    label="FULL NAME"
+                    name="name"
+                    placeholder="E.g. Jane Doe"
+                    value={formData.name}
+                    onChange={handleChange}
+                    icon={<User size={16} />}
+                    required
+                  />
+              </div>
 
-              <InputField
-                type="email"
-                label="EMAIL ADDRESS"
-                name="email"
-                placeholder="YOU@EXAMPLE.COM"
-                value={formData.email}
-                onChange={handleChange}
-                icon={<Mail size={16} />}
-                required
-              />
+              <div className="input-wrapper">
+                  <InputField
+                    type="email"
+                    label="EMAIL ADDRESS"
+                    name="email"
+                    placeholder="name@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    icon={<Mail size={16} />}
+                    required
+                  />
+              </div>
 
               <div className="password-grid">
-                <InputField
-                  type="password"
-                  label="PASSWORD"
-                  name="password"
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                  icon={<Lock size={16} />}
-                  required
-                />
-                <InputField
-                  type="password"
-                  label="CONFIRM"
-                  name="confirmPassword"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  icon={<Lock size={16} />}
-                  required
-                />
+                <div className="input-wrapper">
+                    <InputField
+                      type="password"
+                      label="PASSWORD"
+                      name="password"
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={handleChange}
+                      icon={<Lock size={16} />}
+                      required
+                    />
+                </div>
+                <div className="input-wrapper">
+                    <InputField
+                      type="password"
+                      label="CONFIRM"
+                      name="confirmPassword"
+                      placeholder="••••••••"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      icon={<Lock size={16} />}
+                      required
+                    />
+                </div>
               </div>
 
               <Button 
                 type="submit" 
                 variant="primary" 
-                className="w-full btn-editorial primary mt-6" 
+                className="btn-glow-submit w-full mt-6" 
                 isLoading={loading}
+                disabled={loading}
               >
-                Sign Up <ArrowRight size={16} />
+                {loading ? "INITIALIZING..." : <> Initialize Account <ArrowRight size={16} /> </>}
               </Button>
             </form>
 
             <div className="form-footer">
-              <p>Already a member? <Link to="/login" className="link-highlight">Log In</Link></p>
+              <p>Already a member? <Link to="/login" className="link-highlight">Secure Log In</Link></p>
             </div>
-          </Card>
+          </div>
         </div>
 
       </div>
