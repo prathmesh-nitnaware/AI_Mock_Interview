@@ -1,223 +1,159 @@
 import os
 import json
+import ollama
+from datetime import datetime
+from bson import ObjectId
 from flask import Blueprint, request, jsonify
-from utils.ai_client import client, MODEL_NAME
+from utils.auth_helpers import token_required
+from extensions import interviews_collection
 
-# --- 1. INITIALIZE BLUEPRINT ---
-interview_bp = Blueprint('interview', __name__)
+interview_bp = Blueprint("interview", __name__)
 
-# --- 2. DSA QUESTION BANK (Fallback) ---
-@interview_bp.route('/dsa', methods=['GET'])
-def get_dsa_question():
-    difficulty = request.args.get('difficulty', 'easy').lower()
-    questions = {
-        "easy": {"title": "Two Sum", "description": "Given an array of integers, return indices...", "input_format": "nums = [2,7]", "output_format": "[0,1]"},
-        "medium": {"title": "Longest Substring", "description": "Find the length...", "input_format": "s = 'abc'", "output_format": "3"},
-        "hard": {"title": "Median Arrays", "description": "Find median...", "input_format": "nums1=[1,3], nums2=[2]", "output_format": "2.0"}
-    }
-    return jsonify(questions.get(difficulty, questions['easy']))
-
-# --- 3. INITIATE SESSION (Handles both Voice & Coding Setup) ---
-@interview_bp.route('/initiate', methods=['POST'])
-def initiate_session():
-    print("------------------------------------------------")
-    print("🟢 INITIATE SESSION HIT")
-    
-    data = request.json
-    role = data.get('role', 'Software Engineer')
-    experience = data.get('experience', '0-2 Years')
-    focus = data.get('focus', 'Technical') 
-    intensity = data.get('intensity', 3)
-    resume_context = data.get('resume_context', '')
-
-    print(f"Role: {role} | Focus: {focus}")
-
-    # DYNAMIC PROMPT SELECTION
-    if focus == 'Coding':
-        # Prompt for Coding Round
-        prompt = f"""
-        Act as a Coding Interviewer. Start a coding session for a {role} ({experience}).
-        Resume Context: "{resume_context[:2000]}"
-        
-        Generate the FIRST coding problem.
-        It must include clear Input/Output formats.
-        
-        Return ONLY valid JSON (no markdown):
-        {{
-            "title": "Problem Title",
-            "description": "Problem Description...",
-            "input_format": "e.g. n = 5",
-            "output_format": "e.g. 120"
-        }}
-        """
-    else:
-        # Prompt for Voice/Technical Interview
-        prompt = f"""
-        Act as a Technical Interviewer. Start a {focus} interview for a {role} with {experience} experience.
-        Resume Context: "{resume_context[:2500]}"
-        
-        Based on the resume, generate the FIRST verbal interview question.
-        
-        Return ONLY valid JSON (no markdown):
-        {{
-            "title": "Question Title",
-            "description": "The question text...",
-            "input_format": "N/A",
-            "output_format": "N/A"
-        }}
-        """
-    
+# ============================
+# Helper: Generate Question
+# ============================
+def generate_question(role, experience, focus, resume_context=""):
+    prompt = f"""
+    You are an expert technical interviewer. Generate ONE interview question.
+    Role: {role} | Experience: {experience} | Focus: {focus}
+    Resume Context: {resume_context[:500]}
+    Return ONLY valid JSON:
+    {{
+    "title": "Question Title",
+    "description": "The actual interview question text",
+    "input_format": "text or code",
+    "output_format": "text or code"
+    }}
+    """
     try:
-        chat_response = client.chat.complete(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
-        
-        content = chat_response.choices[0].message.content.replace('```json', '').replace('```', '')
-        return jsonify(json.loads(content))
+        response = ollama.chat(model="llama3:8b", messages=[{"role": "user", "content": prompt}])
+        content = response["message"]["content"]
+        start, end = content.find("{"), content.rfind("}")
+        return json.loads(content[start:end+1])
+    except:
+        return {
+            "title": "Technical Background",
+            "description": f"Explain your experience working with projects related to {role}.",
+            "input_format": "text", "output_format": "text"
+        }
 
-    except Exception as e:
-        print(f"❌ INIT ERROR: {e}")
-        return jsonify({"error": "Failed to start session"}), 500
-
-# --- 4. SUBMIT ANSWER (Handles both Verbal & Code) ---
-@interview_bp.route('/submit', methods=['POST'])
-def submit_code():
-    print("------------------------------------------------")
-    print("🟢 SUBMIT HIT")
-    
-    data = request.json
-    answer = data.get('code', '')
-    question_title = data.get('question_title', 'Unknown Question')
-    mode = data.get('mode', 'code') # 'verbal' or 'code'
-    
-    # Extract Behavioral Metrics (only present for verbal)
-    metrics = data.get('metrics', {})
-    wpm = metrics.get('wpm', 0)
-    fillers = metrics.get('filler_words', 0)
-
-    print(f"Mode: {mode} | Question: {question_title}")
-
-    # A. VERBAL ANALYSIS (Behavioral + Technical)
-    if mode == 'verbal':
-        prompt = f"""
-        Act as a Behavioral & Technical Interviewer. 
-        Question: '{question_title}'
-        User Answer Transcript: "{answer}"
-        
-        Behavioral Data:
-        - Speaking Pace: {wpm} WPM
-        - Filler Words: {fillers}
-        
-        Evaluate:
-        1. Clarity (Sentence structure, pace)
-        2. Confidence (Hesitation, fillers)
-        3. Technical Accuracy (Content)
-        
-        Return strictly valid JSON:
-        {{
-            "technical_accuracy": "High/Medium/Low",
-            "clarity_score": 8,
-            "confidence_score": 7,
-            "feedback": "2-3 sentences feedback on tone and content."
-        }}
-        """
-    
-    # B. CODE REVIEW (Syntax + Logic)
-    else:
-        prompt = f"""
-        Act as a Senior Developer. Review this Python code for the problem '{question_title}'.
-        
-        Code:
-        {answer}
-        
-        Return strictly valid JSON:
-        {{
-            "correctness": "Yes/No/Partial",
-            "time_complexity": "e.g. O(n)",
-            "rating": "8",
-            "feedback": "Short feedback on logic, bugs, and edge cases."
-        }}
-        """
-    
+# ============================
+# Helper: Analyze Answer
+# ============================
+def analyze_answer(question, answer):
+    prompt = f"""
+    Analyze this interview response. Question: {question} | Answer: {answer}
+    Return ONLY valid JSON:
+    {{
+        "clarity_score": 1-10,
+        "confidence_score": 1-10,
+        "feedback": "Concise 1-2 sentence feedback"
+    }}
+    """
     try:
-        chat_response = client.chat.complete(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
-        
-        content = chat_response.choices[0].message.content.replace('```json', '').replace('```', '')
-        return jsonify({"success": True, "review": json.loads(content)})
+        response = ollama.chat(model="llama3:8b", messages=[{"role": "user", "content": prompt}])
+        content = response["message"]["content"]
+        start, end = content.find("{"), content.rfind("}")
+        return json.loads(content[start:end+1])
+    except:
+        return {"clarity_score": 5, "confidence_score": 5, "feedback": "Good effort."}
 
-    except Exception as e:
-        print(f"❌ SUBMIT ERROR: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
+# ============================
+# Routes
+# ============================
 
-# --- 5. NEXT QUESTION (Dynamic Logic) ---
-@interview_bp.route('/next-question', methods=['POST'])
-def get_next_question():
-    print("------------------------------------------------")
-    print("🟢 NEXT QUESTION HIT")
-    data = request.json
-    
-    role = data.get('role', 'Software Engineer')
-    experience = data.get('experience', '0-2 Years')
-    focus = data.get('focus', 'Technical')
-    current_question = data.get('current_question', '')
-    resume_context = data.get('resume_context', '')
-
-    print(f"Generating next for Focus: {focus}")
-
-    # A. CODING ROUND: Generate a NEW Coding Problem
-    if focus == 'Coding':
-        prompt = f"""
-        Act as a Coding Interviewer.
-        The candidate just solved: "{current_question}".
-        
-        Generate a NEW, DIFFERENT coding problem suitable for {experience} level.
-        Do NOT repeat the previous concept.
-        
-        Return JSON:
-        {{
-            "title": "New Problem Title",
-            "description": "Problem Description...",
-            "input_format": "e.g. Array of integers",
-            "output_format": "e.g. Integer"
-        }}
-        """
-    
-    # B. VOICE INTERVIEW: Generate a NEW Verbal Question
-    else:
-        prompt = f"""
-        Act as a Technical Interviewer. 
-        Role: {role}
-        Experience: {experience}
-        
-        The candidate just answered: "{current_question}".
-        
-        Generate the NEXT distinct verbal interview question based on resume context: 
-        "{resume_context[:1000]}"
-        
-        Return ONLY valid JSON:
-        {{
-            "title": "Question Title",
-            "description": "The question text...",
-            "input_format": "N/A",
-            "output_format": "N/A"
-        }}
-        """
-    
+@interview_bp.route("/initiate", methods=["POST"])
+@token_required
+def initiate_session(current_user):
     try:
-        chat_response = client.chat.complete(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
-        content = chat_response.choices[0].message.content.replace('```json', '').replace('```', '')
-        return jsonify(json.loads(content))
-
+        data = request.json
+        session = {
+            "user_id": str(current_user["_id"]),
+            "role": data.get("role", "Software Engineer"),
+            "experience": data.get("experience", "0-2 years"),
+            "focus": data.get("focus", "Technical"),
+            "created_at": datetime.utcnow(),
+            "questions": [],
+            "answers": [],
+            "status": "active"
+        }
+        # Generate first question
+        question = generate_question(session['role'], session['experience'], session['focus'], data.get("resume_context", ""))
+        session["questions"].append(question)
+        
+        result = interviews_collection.insert_one(session)
+        return jsonify({"session_id": str(result.inserted_id), "question": question}), 200
     except Exception as e:
-        print(f"❌ NEXT Q ERROR: {e}")
-        return jsonify({"error": "Failed to generate next question"}), 500
+        return jsonify({"error": str(e)}), 500
+
+@interview_bp.route("/submit", methods=["POST"])
+@token_required
+def submit_answer(current_user):
+    try:
+        data = request.json
+        session_id = data.get("session_id")
+        answer = data.get("answer")
+        question_title = data.get("question_title")
+
+        review = analyze_answer(question_title, answer)
+
+        interviews_collection.update_one(
+            {"_id": ObjectId(session_id)},
+            {"$push": {"answers": {"question": question_title, "answer": answer, "feedback": review}}}
+        )
+        return jsonify({"success": True, "review": review}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@interview_bp.route("/next", methods=["POST"])
+@token_required
+def next_question(current_user):
+    try:
+        data = request.json
+        session_id = data.get("session_id")
+        session = interviews_collection.find_one({"_id": ObjectId(session_id)})
+        
+        question = generate_question(session['role'], session['experience'], session['focus'])
+        interviews_collection.update_one(
+            {"_id": ObjectId(session_id)},
+            {"$push": {"questions": question}}
+        )
+        return jsonify(question), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@interview_bp.route("/complete", methods=["POST"])
+@token_required
+def complete_session(current_user):
+    try:
+        data = request.json
+        session_id = data.get("session_id")
+        overall_score = data.get("overall_score")
+        
+        interviews_collection.update_one(
+            {"_id": ObjectId(session_id)},
+            {"$set": {"status": "completed", "overall_score": overall_score}}
+        )
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@interview_bp.route("/history", methods=["GET"])
+@token_required
+def get_history(current_user):
+    try:
+        history = list(interviews_collection.find({"user_id": str(current_user["_id"])}).sort("created_at", -1))
+        for item in history:
+            item["_id"] = str(item["_id"])
+        return jsonify(history), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@interview_bp.route("/delete/<session_id>", methods=["DELETE"])
+@token_required
+def delete_session(current_user, session_id):
+    try:
+        interviews_collection.delete_one({"_id": ObjectId(session_id), "user_id": str(current_user["_id"])})
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

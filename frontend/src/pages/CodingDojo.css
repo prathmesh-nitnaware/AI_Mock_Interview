@@ -1,0 +1,121 @@
+.dojo-root {
+    min-height: 100vh;
+    background: #050505;
+    color: white;
+    padding: 40px;
+    transform: scale(0.9);
+    transform-origin: top center;
+}
+
+.ambient-glow-dojo {
+    position: fixed;
+    top: -10%;
+    left: -10%;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.dojo-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 80vh;
+}
+
+.problem-panel {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.dojo-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin: 20px 0;
+    letter-spacing: -1px;
+}
+
+.dojo-description {
+    line-height: 1.6;
+    color: #a1a1aa;
+    font-size: 1.05rem;
+}
+
+/* AI Feedback within Dojo */
+.ai-feedback-box {
+    margin-top: auto;
+    padding: 20px;
+    border-left: 4px solid #818cf8;
+    background: rgba(129, 140, 248, 0.05);
+}
+
+.dojo-score-row {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+    font-weight: 800;
+    font-size: 0.8rem;
+    color: #818cf8;
+}
+
+/* Editor Styling */
+.editor-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important;
+    overflow: hidden;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.editor-header {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.code-area {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 24px;
+    color: #e4e4e7;
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+}
+
+.editor-actions {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.run-btn-glow {
+    background: white;
+    color: black;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.run-btn-glow:hover {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}

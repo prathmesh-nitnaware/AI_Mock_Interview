@@ -1,5 +1,5 @@
 import React from 'react';
-import '../components.css'; // Adjusted path based on your file tree
+import '../components.css'; 
 
 const InputField = ({ 
   label, 
@@ -9,25 +9,30 @@ const InputField = ({
   onChange, 
   placeholder, 
   required = false,
-  icon = null, // Optional icon component (e.g. from lucide-react)
-  className = '' // Allows passing extra classes for spacing
+  icon = null, 
+  className = '' 
 }) => {
   return (
-    <div className={`input-group ${className}`}>
-      {label && <label className="input-glass-label" htmlFor={name}>{label}</label>}
+    <div className={`input-wrapper ${className}`}>
+      {label && (
+        <label className="input-label" htmlFor={name}>
+          {label}
+        </label>
+      )}
       
-      <div className="input-glass-wrapper">
-        {icon && <span className="input-glass-icon">{icon}</span>}
+      <div className="input-container">
+        {icon && <span className="input-icon">{icon}</span>}
         
         <input
           id={name}
-          className={`input-glass-field ${icon ? 'has-icon' : ''}`}
+          className="neon-input" // This now matches the CSS below
           type={type}
           name={name}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
           required={required}
+          autoComplete="off"
         />
       </div>
     </div>

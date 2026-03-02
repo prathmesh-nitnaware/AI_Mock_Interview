@@ -15,12 +15,11 @@ import { useAuth } from '../../context/AuthContext';
 import '../../styles/layout.css'; 
 
 const Layout = () => {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Helper to check active routes for glowing state
   const isActive = (path) => location.pathname.startsWith(path);
 
   const handleLogout = () => {
@@ -41,29 +40,30 @@ const Layout = () => {
       
       {/* --- TOP HEADER --- */}
       <header className="glass-header">
+
         <div className="header-left">
-          <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          <button 
+            className="mobile-menu-btn" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           
           <Link to="/dashboard" className="brand-logo">
-             <div className="brand-icon-glow"><Sparkles size={16} /></div>
+             <div className="brand-icon-glow">
+               <Sparkles size={16} />
+             </div>
              <span>PREP AI</span>
           </Link>
         </div>
 
-        <div className="header-right">
-          <div className="user-profile-trigger" onClick={() => navigate('/profile')}>
-            <span className="user-name hidden-mobile">{user?.name || 'Developer'}</span>
-            <div className="avatar-circle">
-               {user?.name ? user.name.charAt(0).toUpperCase() : 'D'}
-            </div>
-          </div>
-        </div>
+        {/* REMOVED header-right completely */}
+
       </header>
 
-      {/* --- SIDEBAR NAVIGATION --- */}
+      {/* --- SIDEBAR --- */}
       <aside className={`glass-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+        
         <nav className="sidebar-nav">
           {navLinks.map((link) => (
             <Link 
@@ -80,21 +80,27 @@ const Layout = () => {
 
         <div className="sidebar-footer">
           <button onClick={handleLogout} className="sidebar-link logout-btn">
-            <span className="link-icon"><LogOut size={20} /></span>
+            <span className="link-icon">
+              <LogOut size={20} />
+            </span>
             <span className="link-text">Secure Log Out</span>
           </button>
         </div>
+
       </aside>
 
-      {/* --- MAIN CONTENT AREA --- */}
+      {/* --- MAIN CONTENT --- */}
       <main className="main-content-area">
-        {/* Mobile overlay to close menu when clicking outside */}
+
         {isMobileMenuOpen && (
-          <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>
+          <div 
+            className="mobile-overlay" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
         )}
-        
-        {/* Outlet renders the current nested route (Dashboard, Profile, etc.) */}
-        <Outlet /> 
+
+        <Outlet />
+
       </main>
 
     </div>

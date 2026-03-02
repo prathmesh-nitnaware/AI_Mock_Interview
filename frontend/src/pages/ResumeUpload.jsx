@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, FileText, X, ArrowRight, Target } from 'lucide-react';
+import { UploadCloud, FileText, X, ArrowRight, Target, Loader2 } from 'lucide-react';
 import { api } from '../services/api'; 
 import '../styles/theme.css';
 import './ResumeUpload.css';
@@ -35,25 +35,28 @@ const ResumeUpload = () => {
     setLoading(true);
     setError(null);
 
+    // Prepare Multipart Form Data for Flask
+    const formData = new FormData();
+    formData.append('resume', file);
+    formData.append('job_description', targetRole);
+
     try {
-      // Assuming your backend needs the file uploaded first, 
-      // you would await the API call here to get a resume ID:
-      // const uploadedDoc = await api.uploadDocument(file); 
+      // 1. Call the backend API (ensure api.scoreResume uses axios.post or fetch)
+      // Pass the formData directly
+      const response = await api.scoreResume(formData); 
       
-      // For now, we simulate success and pass data to the Results page.
-      // We route directly to the beautiful Results page we already built!
-      setTimeout(() => {
-          navigate('/resume/result', { 
-              state: { 
-                  resume_id: 'temp_resume_id', // Replace with uploadedDoc.id if needed
-                  job_role: targetRole 
-              } 
-          });
-      }, 1500);
+      // 2. Navigate to Results page with the real AI data
+      navigate('/resume/result', { 
+          state: { 
+              results: response, // Passing the full AI JSON (score, summary, etc.)
+              job_role: targetRole 
+          } 
+      });
 
     } catch (err) {
-      console.error("Upload Error:", err);
-      setError("Secure upload failed. Please check your connection.");
+      console.error("Upload/Processing Error:", err);
+      setError(err.response?.data?.error || "AI Analysis failed. Please check your Ollama connection.");
+    } finally {
       setLoading(false); 
     }
   };
@@ -78,7 +81,7 @@ const ResumeUpload = () => {
           {/* File Dropzone */}
           {!file ? (
             <label className="dropzone-area">
-              <UploadCloud size={48} className="text-indigo mb-4 drop-icon" />
+              <UploadCloud size={48} className={`text-indigo mb-4 drop-icon ${loading ? 'animate-bounce' : ''}`} />
               <span className="dz-text">Click to browse or drag PDF here</span>
               <span className="dz-hint">Maximum file size: 5MB</span>
               <input 
@@ -86,6 +89,7 @@ const ResumeUpload = () => {
                 accept=".pdf" 
                 className="hidden" 
                 onChange={handleFileChange} 
+                disabled={loading}
               />
             </label>
           ) : (
@@ -97,9 +101,11 @@ const ResumeUpload = () => {
                     <span className="file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
                 </div>
               </div>
-              <button onClick={() => setFile(null)} className="btn-remove-file" title="Remove file">
-                <X size={20} />
-              </button>
+              {!loading && (
+                <button onClick={() => setFile(null)} className="btn-remove-file" title="Remove file">
+                  <X size={20} />
+                </button>
+              )}
             </div>
           )}
 
@@ -114,6 +120,7 @@ const ResumeUpload = () => {
                   placeholder="E.g. Full Stack Developer, Product Manager"
                   value={targetRole}
                   onChange={(e) => setTargetRole(e.target.value)}
+                  disabled={loading}
               />
           </div>
 
@@ -124,7 +131,13 @@ const ResumeUpload = () => {
             disabled={loading || !file || !targetRole.trim()}
             className="btn-glow-submit w-full mt-8"
           >
-            {loading ? "ENCRYPTING & UPLOADING..." : <>INITIATE SCAN <ArrowRight size={18} /></>}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="animate-spin" size={18} /> ANALYZING WITH OLLAMA...
+              </span>
+            ) : (
+              <>INITIATE SCAN <ArrowRight size={18} /></>
+            )}
           </button>
           
         </div>

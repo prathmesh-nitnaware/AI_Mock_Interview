@@ -1,219 +1,273 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '../services/api';
-import { 
-  ChevronRight, Clock, Code2, Users, Settings, 
-  AlertCircle, FileText, CheckCircle2, UploadCloud, Loader2
-} from 'lucide-react';
-import Button from '../components/ui/Button';
-import InputField from '../components/forms/InputField';
-import '../styles/theme.css';
-import './Interview.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "../services/api"; // This imports the object with methods like initiateInterview
+
+import {
+  ChevronRight,
+  Code2,
+  Users,
+  Settings,
+  AlertCircle,
+  FileText,
+  CheckCircle2,
+  UploadCloud,
+  Loader2,
+} from "lucide-react";
+
+import Button from "../components/ui/Button";
+import InputField from "../components/forms/InputField";
+
+import "../styles/theme.css";
+import "./Interview.css";
 
 const Interview = () => {
   const navigate = useNavigate();
-  
-  // States
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [resumeText, setResumeText] = useState(localStorage.getItem('last_resume_text') || "");
   const [isUploading, setIsUploading] = useState(false);
 
+  const [resumeText, setResumeText] = useState(
+    localStorage.getItem("last_resume_text") || "",
+  );
+
   const [formData, setFormData] = useState({
-    role: '',
-    experience: '0-2 years',
-    type: 'Technical',
-    questionCount: 5
+    role: "",
+    experience: "0-2 years",
+    type: "Technical",
+    questionCount: 5,
   });
 
+  // =========================
+  // HANDLERS
+  // =========================
+
   const handleChange = (e) => {
-    setError(false); 
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(false);
+
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
-  const handleSelect = (key, val) => {
-    setFormData({ ...formData, [key]: val });
+  const handleSelect = (key, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
-  // --- Resume Parsing Logic ---
+  // =========================
+  // RESUME UPLOAD
+  // =========================
+
   const handleResumeUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setIsUploading(true);
+
     try {
-      const data = await api.scoreResume(file, "General Context");
-      if (data.extracted_text) {
-          setResumeText(data.extracted_text);
-          localStorage.setItem('last_resume_text', data.extracted_text);
-      } else {
-          alert("Resume parsed, but no text could be extracted.");
+      // Use the specific service method
+      const result = await api.uploadResumeForInterview(file);
+
+      if (result?.extracted_text) {
+        setResumeText(result.extracted_text);
+        localStorage.setItem("last_resume_text", result.extracted_text);
       }
     } catch (err) {
-      console.error(err);
-      alert("Failed to parse file. Ensure backend is running.");
+      console.error("Resume upload error:", err);
+      alert("Resume upload failed. Make sure the backend is running.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // --- Session Init Logic ---
+  // =========================
+  // SUBMIT (The Fix is here)
+  // =========================
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.role.trim()) {
       setError(true);
       return;
     }
-    
+
     setLoading(true);
+
     try {
-      const sessionConfig = {
+      const config = {
         role: formData.role,
         experience: formData.experience,
         focus: formData.type,
         intensity: formData.questionCount,
-        resume_context: resumeText 
+        resume_context: resumeText,
       };
 
-      // Ensure your backend endpoint matches this signature
-      const data = await api.startInterview(sessionConfig);
-      
-      if (data) {
-        // Pass to the Lobby/System Check screen first
-        navigate('/interview/session', { 
-            state: { question: data, config: sessionConfig } 
-        });
+      /** * FIX: Use api.initiateInterview(config) 
+       * instead of api.post(...)
+       */
+      const data = await api.initiateInterview(config);
+
+      if (!data.session_id || !data.question) {
+        alert("Backend response invalid. Please check Ollama logs.");
+        return;
       }
-    } catch { 
-      alert("Failed to initialize session. Please try again."); 
-    } finally { 
-      setLoading(false); 
+
+      navigate("/interview/session", {
+        state: {
+          session_id: data.session_id,
+          question: data.question,
+          config,
+        },
+      });
+    } catch (err) {
+      console.error("Interview Init Error:", err);
+      alert(err.message || "Failed to initialize interview environment.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  // =========================
+  // OPTIONS
+  // =========================
+
   const expOptions = [
-    { label: '0-2 YEARS', val: '0-2 years' },
-    { label: '3-5 YEARS', val: '3-5 years' },
-    { label: '5+ YEARS', val: '5+ years' }
+    { label: "0-2 YEARS", val: "0-2 years" },
+    { label: "3-5 YEARS", val: "3-5 years" },
+    { label: "5+ YEARS", val: "5+ years" },
   ];
 
   const typeOptions = [
-    { label: 'TECHNICAL', icon: <Code2 size={16} /> },
-    { label: 'BEHAVIORAL', icon: <Users size={16} /> },
-    { label: 'SYSTEM DESIGN', icon: <Settings size={16} /> }
+    { label: "Technical", icon: <Code2 size={16} /> },
+    { label: "Behavioral", icon: <Users size={16} /> },
+    { label: "System Design", icon: <Settings size={16} /> },
   ];
+
+  // =========================
+  // UI
+  // =========================
 
   return (
     <div className="interview-root page-container fade-in-up">
+      <div className="ambient-glow"></div>
+
       <div className="interview-split">
-        
-        {/* Left Side: Meta Info & Resume Context */}
+        {/* LEFT PANEL */}
         <div className="interview-meta">
           <div className="meta-badge">SYSTEM.INIT</div>
-          <h1 className="meta-title">SESSION<br/>CONFIG</h1>
+
+          <h1 className="meta-title">
+            INTERVIEW
+            <br />
+            CONFIG
+          </h1>
+
           <p className="meta-desc">
-            Define the parameters for your AI simulation. The model will adapt its phrasing, difficulty, and follow-up questions based on these settings.
+            Configure AI interviewer personality, intensity, and experience
+            targeting.
           </p>
 
-          {/* New Integrated Resume Context Widget */}
-          <div className={`context-widget mt-8 ${resumeText ? 'active' : ''}`}>
-             <div className="cw-header">
-                {resumeText ? <CheckCircle2 size={20} className="text-success" /> : <FileText size={20} className="text-muted" />}
-                <h3>{resumeText ? "AI CONTEXT ACTIVE" : "OPTIONAL CONTEXT"}</h3>
-             </div>
-             <p className="cw-desc">
-                {resumeText 
-                  ? "Your resume data is loaded. The AI will tailor scenarios to your specific past projects."
-                  : "Upload a resume to generate highly personalized, experience-specific interview questions."}
-             </p>
-             
-             <label className="cw-upload-btn">
-                {isUploading ? <Loader2 size={16} className="spin" /> : <UploadCloud size={16} />}
-                {resumeText ? "REPLACE RESUME" : "UPLOAD RESUME PDF"}
-                <input type="file" accept=".pdf" className="hidden" onChange={handleResumeUpload} disabled={isUploading} />
-             </label>
+          <div className={`context-widget ${resumeText ? "active" : ""}`}>
+            <div className="cw-header">
+              {resumeText ? (
+                <CheckCircle2 size={18} color="#10b981" />
+              ) : (
+                <FileText size={18} />
+              )}
+
+              <h3>
+                {resumeText
+                  ? "Resume Context Loaded"
+                  : "Optional Resume Context"}
+              </h3>
+            </div>
+
+            <label className="cw-upload-btn">
+              {isUploading ? (
+                <Loader2 size={16} className="spin" />
+              ) : (
+                <UploadCloud size={16} />
+              )}
+
+              {isUploading ? "Uploading..." : "Upload Resume"}
+
+              <input
+                type="file"
+                hidden
+                accept=".pdf"
+                onChange={handleResumeUpload}
+              />
+            </label>
+            {resumeText && (
+              <p className="resume-status-subtext">AI will use your resume for tailoring questions.</p>
+            )}
           </div>
         </div>
 
-        {/* Right Side: Configuration Form */}
+        {/* RIGHT PANEL */}
         <div className="interview-form-wrapper">
-          <Card className="card-editorial setup-card">
+          <div className="glass-panel setup-card">
             <form onSubmit={handleSubmit}>
-              
-              <div className="group-editorial">
-                <InputField 
-                  label="TARGET ROLE"
-                  name="role"
-                  placeholder="E.g. Senior Frontend Engineer"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className={error ? 'input-error' : ''}
-                />
-                {error && <span className="error-text"><AlertCircle size={14} /> A target role is required.</span>}
+              <InputField
+                label="TARGET ROLE"
+                name="role"
+                placeholder="e.g. Full Stack Developer"
+                value={formData.role}
+                onChange={handleChange}
+              />
+
+              {error && (
+                <span className="error-text">
+                  <AlertCircle size={14} />
+                  Target role required
+                </span>
+              )}
+
+              <div className="section-label">EXPERIENCE LEVEL</div>
+
+              <div className="chips-row">
+                {expOptions.map((exp) => (
+                  <button
+                    key={exp.val}
+                    type="button"
+                    onClick={() => handleSelect("experience", exp.val)}
+                    className={`chip-btn ${formData.experience === exp.val ? "active" : ""}`}
+                  >
+                    {exp.label}
+                  </button>
+                ))}
               </div>
 
-              <div className="group-editorial">
-                <label className="label-editorial">EXPERIENCE LEVEL</label>
-                <div className="chips-row">
-                  {expOptions.map(exp => (
-                    <button
-                      key={exp.val} type="button"
-                      className={`chip-btn ${formData.experience === exp.val ? 'active' : ''}`}
-                      onClick={() => handleSelect('experience', exp.val)}
-                    >
-                      <Clock size={14} className="chip-icon" /> {exp.label}
-                    </button>
-                  ))}
-                </div>
+              <div className="section-label">INTERVIEW TYPE</div>
+
+              <div className="chips-row">
+                {typeOptions.map((type) => (
+                  <button
+                    key={type.label}
+                    type="button"
+                    onClick={() => handleSelect("type", type.label)}
+                    className={`chip-btn ${formData.type === type.label ? "active" : ""}`}
+                  >
+                    {type.icon}
+                    {type.label}
+                  </button>
+                ))}
               </div>
 
-              <div className="group-editorial">
-                <label className="label-editorial">SESSION TYPE</label>
-                <div className="chips-row">
-                  {typeOptions.map(type => (
-                    <button
-                      key={type.label} type="button"
-                      className={`chip-btn ${formData.type === type.label ? 'active' : ''}`}
-                      onClick={() => handleSelect('type', type.label)}
-                    >
-                      {type.icon} {type.label}
-                    </button>
-                  ))}
-                </div>
+              <div className="submit-row">
+                <Button type="submit" isLoading={loading} disabled={loading}>
+                  {loading ? "GENERATING QUESTIONS..." : "INITIALIZE ENVIRONMENT"}
+                  {!loading && <ChevronRight size={18} />}
+                </Button>
               </div>
-
-              <div className="group-editorial">
-                <div className="flex-between">
-                  <label className="label-editorial">INTENSITY (QUESTIONS)</label>
-                  <span className="text-mono highlight-text">{formData.questionCount}</span>
-                </div>
-                <div className="slider-wrapper">
-                  <input 
-                    type="range" min="3" max="10" step="1"
-                    value={formData.questionCount}
-                    onChange={(e) => handleSelect('questionCount', parseInt(e.target.value))}
-                    className="slider-editorial"
-                    style={{ backgroundSize: `${((formData.questionCount - 3) * 100) / 7}% 100%` }}
-                  />
-                  <div className="slider-labels">
-                    <span>Quick (3)</span>
-                    <span>Deep Dive (10)</span>
-                  </div>
-                </div>
-              </div>
-
-              <Button 
-                type="submit" variant="primary" 
-                isLoading={loading} disabled={!formData.role.trim() || loading}
-                className="btn-editorial primary w-full mt-6 init-btn"
-              >
-                INITIALIZE ENVIRONMENT <ChevronRight size={18} />
-              </Button>
-
             </form>
-          </Card>
+          </div>
         </div>
-
       </div>
     </div>
   );

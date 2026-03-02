@@ -1,99 +1,159 @@
-import axios from 'axios';
+import axios from "axios";
 
-// Dynamic URL: Logic to switch between Local and Production
-const API_URL = window.location.hostname === "localhost" 
-  ? "http://localhost:5000/api" 
-  : "https://prep-ai-backend-z5rk.onrender.com/api";
+// ==========================================
+// BASE URL SWITCHER
+// ==========================================
+const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://prep-ai-backend-z5rk.onrender.com";
 
+// ==========================================
+// AXIOS CLIENT
+// ==========================================
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
-// Helper to get token from local storage
-const getAuthToken = () => localStorage.getItem('token');
-
 // ==========================================
-// AUTHENTICATION EXPORTS
+// AUTH INTERCEPTOR (CRITICAL)
 // ==========================================
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
 
-export const loginUser = async (credentials) => {
-  try {
-    // Hits @app.route('/api/auth/login')
-    const response = await apiClient.post('/auth/login', credentials);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    // Standard check to attach Bearer token if it exists
+    if (token && token !== "undefined" && token !== "null") {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return response.data;
-  } catch (error) {
-    throw error.response ? error.response.data : new Error("Login failed");
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// ==========================================
+// RESPONSE INTERCEPTOR (AUTO LOGOUT ON 401)
+// ==========================================
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // If the backend returns 401, the token is likely expired
+    if (error.response && error.response.status === 401) {
+      console.warn("Session expired. Logging out.");
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(
+      error.response?.data || { message: "Server error" }
+    );
   }
+);
+
+// ==========================================
+// AUTH FUNCTIONS
+// ==========================================
+export const loginUser = async (credentials) => {
+  const response = await apiClient.post("/api/auth/login", credentials);
+
+  if (response.data.token) {
+    localStorage.setItem("token", response.data.token);
+    localStorage.setItem("user", JSON.stringify(response.data.user));
+  }
+
+  return response.data;
 };
 
 export const registerUser = async (userData) => {
-  try {
-    // Hits @app.route('/api/auth/signup')
-    const response = await apiClient.post('/auth/signup', userData);
-    return response.data;
-  } catch (error) {
-    throw error.response ? error.response.data : new Error("Registration failed");
-  }
+  const response = await apiClient.post("/api/auth/signup", userData);
+  return response.data;
 };
 
 // ==========================================
-// FEATURE EXPORTS
+// RESUME & AUDIT FUNCTIONS
 // ==========================================
-
-export const uploadResumeForInterview = async (file) => {
-  const formData = new FormData();
-  formData.append('resume', file);
-
-  try {
-    // Hits @app.route('/api/interview/generate-from-resume')
-    const response = await axios.post(`${API_URL}/interview/generate-from-resume`, formData, {
+export const scoreResume = async (formData) => {
+  /**
+   * Matches Flask: app.register_blueprint(resume_bp, url_prefix="/api/resume")
+   * This sends the actual file + job description to the Ollama engine.
+   */
+  const response = await apiClient.post(
+    "/api/resume/score", 
+    formData,
+    {
       headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${getAuthToken()}`
+        "Content-Type": "multipart/form-data",
       },
-    });
-    return response.data;
-  } catch (error) {
-    throw error.response ? error.response.data : new Error("Resume upload failed");
-  }
+    }
+  );
+  return response.data;
+};
+
+// ==========================================
+// INTERVIEW FUNCTIONS
+// ==========================================
+export const initiateInterview = async (payload) => {
+  const response = await apiClient.post("/api/interview/initiate", payload);
+  return response.data;
 };
 
 export const submitCode = async (payload) => {
-  try {
-    // Hits @app.route('/api/interview/submit')
-    const response = await apiClient.post('/interview/submit', payload, {
-      headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-    });
-    return response.data;
-  } catch (error) {
-    throw error.response ? error.response.data : new Error("Code submission failed");
+  if (!payload.session_id) {
+    throw new Error("session_id missing. Interview not initialized.");
   }
+  const response = await apiClient.post("/api/interview/submit", payload);
+  return response.data;
+};
+
+export const getDSAQuestion = async (difficulty) => {
+  const response = await apiClient.get("/api/interview/dsa", {
+    params: { difficulty },
+  });
+  return response.data;
+};
+
+export const uploadResumeForInterview = async (file) => {
+  const formData = new FormData();
+  formData.append("resume", file);
+
+  const response = await apiClient.post(
+    "/api/interview/generate-from-resume",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data;
 };
 
 // ==========================================
-// THE 'api' OBJECT EXPORT
+// DASHBOARD
+// ==========================================
+export const getDashboard = async (userId) => {
+  const response = await apiClient.get(`/api/dashboard/${userId}`);
+  return response.data;
+};
+
+// ==========================================
+// CONSOLIDATED API EXPORT
 // ==========================================
 export const api = {
-  get: (url, config) => apiClient.get(url, config),
-  post: (url, data, config) => apiClient.post(url, data, config),
-  
-  // Aliases for easier use in components
-  login: loginUser,
-  signup: registerUser,
+  loginUser,
+  registerUser,
+  scoreResume,
+  initiateInterview,
   submitCode,
+  getDSAQuestion,
+  getDashboard,
   uploadResumeForInterview,
-
-  getDashboard: async (userId) => {
-    const response = await apiClient.get(`/dashboard/${userId}`, {
-      headers: { 'Authorization': `Bearer ${getAuthToken()}` }
-    });
-    return response.data;
-  }
+  client: apiClient 
 };

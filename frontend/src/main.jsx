@@ -1,17 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom'; // <--- IMPORT THIS
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-
-// NOTE: Global styles are imported inside App.jsx to ensure 
-// they apply to all child components within the Context Providers.
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <React.StrictMode>
-    {/* Wrap App in BrowserRouter to enable routing */}
-    <BrowserRouter>
+    {/* The 'future' prop opts into React Router v7 behavior early, 
+        removing the warnings from your console.
+    */}
+    <BrowserRouter 
+      future={{ 
+        v7_startTransition: true, 
+        v7_relativeSplatPath: true 
+      }}
+    >
       <App />
     </BrowserRouter>
   </React.StrictMode>

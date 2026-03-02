@@ -1,86 +1,83 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { 
-  ArrowRight, 
-  Video, 
-  VideoOff, 
-  Mic, 
-  MicOff, 
-  CheckCircle2, 
-  ShieldCheck, 
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { api } from "../services/api";
+import {
+  ArrowRight,
+  Video,
+  VideoOff,
+  Mic,
+  MicOff,
+  CheckCircle2,
+  ShieldCheck,
   Settings2,
-  AlertTriangle
-} from 'lucide-react';
-import './InterviewSession.css';
+  AlertTriangle,
+} from "lucide-react";
+
+import "./InterviewSession.css";
 
 const InterviewSession = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
-  // Data from Setup
-  const questionData = location.state?.question;
-  const sessionConfig = location.state?.config;
+  // Extracting context from previous Config step
+  const questionData = location.state?.question || null;
+  const sessionConfig = location.state?.config || null;
+  const sessionId = location.state?.session_id || null;
 
   const [hasPermissions, setHasPermissions] = useState(false);
   const [permissionError, setPermissionError] = useState(null);
   const [isChecking, setIsChecking] = useState(true);
 
-  // Hardware States
   const [cameraOn, setCameraOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
 
   useEffect(() => {
-    const getPermissions = async () => {
+    // Safety check: Redirect if no session context
+    if (!questionData || !sessionId) {
+      navigate("/interview");
+      return;
+    }
+
+    const initHardware = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
-          audio: true 
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
         });
-        
+
         streamRef.current = stream;
-        
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
-        
-        // Simulate a brief "checking" phase for UX
-        setTimeout(() => {
-            setHasPermissions(true);
-            setIsChecking(false);
-        }, 1200);
 
+        // Verification delay for UI experience
+        setTimeout(() => {
+          setHasPermissions(true);
+          setIsChecking(false);
+        }, 1500);
       } catch (err) {
-        console.error("Permission Error:", err);
-        setPermissionError("Hardware access denied. Please enable your camera and microphone in your browser settings.");
+        setPermissionError("Camera/Microphone access denied. Please check settings.");
         setIsChecking(false);
       }
     };
 
-    if (!questionData) {
-       console.warn("No session data found. The interview might crash if forced.");
-    }
+    initHardware();
 
-    getPermissions();
-
-    // --- CLEANUP ---
     return () => {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => {
-          track.stop(); 
-          track.enabled = false;
-        });
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [questionData]);
+  }, [questionData, sessionId, navigate]);
 
-  // Toggle Handlers
   const toggleCamera = () => {
     if (streamRef.current) {
-      const videoTrack = streamRef.current.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !cameraOn;
+      const track = streamRef.current.getVideoTracks()[0];
+      if (track) {
+        track.enabled = !cameraOn;
         setCameraOn(!cameraOn);
       }
     }
@@ -88,31 +85,34 @@ const InterviewSession = () => {
 
   const toggleMic = () => {
     if (streamRef.current) {
-      const audioTrack = streamRef.current.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !micOn;
+      const track = streamRef.current.getAudioTracks()[0];
+      if (track) {
+        track.enabled = !micOn;
         setMicOn(!micOn);
       }
     }
   };
 
   const startActualInterview = () => {
-    navigate('/interview/live', { 
-      state: { 
+    navigate("/interview/live", {
+      state: {
         question: questionData,
-        config: sessionConfig 
-      } 
+        config: sessionConfig,
+        session_id: sessionId,
+      },
     });
   };
 
   if (permissionError) {
     return (
-      <div className="lobby-container flex-center">
-        <div className="error-card">
-            <AlertTriangle size={48} className="error-icon" />
-            <h2>Access Denied</h2>
-            <p>{permissionError}</p>
-            <button onClick={() => window.location.reload()} className="btn-retry">Try Again</button>
+      <div className="lobby-container">
+        <div className="glass-panel error-card text-center">
+          <AlertTriangle size={48} color="#ef4444" className="mb-4" />
+          <h2 className="text-xl font-bold mb-2">Hardware Blocked</h2>
+          <p className="mb-6" style={{ color: '#888' }}>{permissionError}</p>
+          <button className="btn-enter-studio" onClick={() => window.location.reload()}>
+            RETRY CONNECTION
+          </button>
         </div>
       </div>
     );
@@ -122,103 +122,81 @@ const InterviewSession = () => {
     <div className="lobby-container fade-in">
       <div className="lobby-grid">
         
-        {/* LEFT: Video Preview */}
+        {/* --- LEFT: Preview Panel --- */}
         <div className="preview-panel">
           <div className="panel-header">
-             <Settings2 size={18} />
-             <span>Hardware Configuration</span>
+            <Settings2 size={14} /> SIGNAL MONITOR
           </div>
-
-          <div className={`video-wrapper ${!cameraOn ? 'cam-off-bg' : ''}`}>
+          
+          <div className="video-wrapper">
             {cameraOn ? (
-               <video ref={videoRef} autoPlay playsInline muted className="live-video" />
+              <video ref={videoRef} autoPlay playsInline muted className="live-video" />
             ) : (
-               <div className="cam-off-state">
-                  <div className="avatar-placeholder"></div>
-                  <span>Camera Disabled</span>
-               </div>
+              <div className="cam-off-state">
+                <div className="avatar-placeholder">P</div>
+                VIDEO FEED OFFLINE
+              </div>
             )}
-            
-            {/* Floating Controls inside video */}
+
             <div className="controls-overlay">
-              <button onClick={toggleMic} className={`control-btn ${!micOn ? 'off' : ''}`} title="Toggle Mic">
-                 {micOn ? <Mic size={20} /> : <MicOff size={20} />}
+              <button className={`control-btn ${!micOn ? "off" : ""}`} onClick={toggleMic}>
+                {micOn ? <Mic size={20} /> : <MicOff size={20} />}
               </button>
-              <button onClick={toggleCamera} className={`control-btn ${!cameraOn ? 'off' : ''}`} title="Toggle Camera">
-                 {cameraOn ? <Video size={20} /> : <VideoOff size={20} />}
+              <button className={`control-btn ${!cameraOn ? "off" : ""}`} onClick={toggleCamera}>
+                {cameraOn ? <Video size={20} /> : <VideoOff size={20} />}
               </button>
             </div>
           </div>
-          
+
           <div className="audio-visualizer-box">
-             <span className="av-label">Mic Input</span>
-             {micOn ? (
-                 <div className="equalizer">
-                    <span className="bar b1"></span>
-                    <span className="bar b2"></span>
-                    <span className="bar b3"></span>
-                    <span className="bar b4"></span>
-                    <span className="bar b5"></span>
-                 </div>
-             ) : (
-                 <span className="av-muted">Muted</span>
-             )}
+            <span className="av-label">AUDIO_INPUT_LEVEL</span>
+            <div className="equalizer">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="bar" style={{ animationDelay: `${i * 0.1}s` }}></div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* RIGHT: Pre-flight Checklist */}
+        {/* --- RIGHT: Checklist Panel --- */}
         <div className="checklist-panel">
-          <div className="checklist-content">
-              <div className="badge-system">PRE-FLIGHT</div>
-              <h1 className="lobby-title">System Check</h1>
-              <p className="lobby-sub">Please verify your hardware and environment before initializing the AI simulation.</p>
-
-              <div className="checklist-items">
-                 <div className="check-item slide-in" style={{ animationDelay: '0.2s' }}>
-                    {isChecking ? <div className="loader-ring"></div> : <CheckCircle2 size={24} className="text-success" />}
-                    <div className="ci-text">
-                       <strong>Video Feed</strong>
-                       <span>{isChecking ? 'Detecting camera...' : cameraOn ? 'Camera active and secure' : 'Camera disabled (Optional)'}</span>
-                    </div>
-                 </div>
-
-                 <div className="check-item slide-in" style={{ animationDelay: '0.4s' }}>
-                    {isChecking ? <div className="loader-ring"></div> : <CheckCircle2 size={24} className="text-success" />}
-                    <div className="ci-text">
-                       <strong>Audio Input</strong>
-                       <span>{isChecking ? 'Detecting microphone...' : micOn ? 'Microphone active' : 'Microphone muted (Action required)'}</span>
-                    </div>
-                 </div>
-
-                 <div className="check-item slide-in" style={{ animationDelay: '0.6s' }}>
-                    <ShieldCheck size={24} className="text-indigo" />
-                    <div className="ci-text">
-                       <strong>Environment</strong>
-                       <span>Ensure you are in a quiet, well-lit room.</span>
-                    </div>
-                 </div>
+          <h1 className="lobby-title">SYSTEM CHECK</h1>
+          <p className="lobby-sub">Verify your hardware environment before initializing the AI interview studio.</p>
+          
+          <div className="checklist-items">
+            <div className={`check-item ${!isChecking && hasPermissions ? 'passed' : ''}`}>
+              {isChecking ? <div className="loader-ring"></div> : <CheckCircle2 size={24} color="#818cf8" />}
+              <div className="ci-text">
+                <strong>Optical Sensors</strong>
+                <span>{isChecking ? "Verifying camera..." : "High-definition feed active"}</span>
               </div>
+            </div>
+
+            <div className={`check-item ${!isChecking && hasPermissions ? 'passed' : ''}`}>
+              {isChecking ? <div className="loader-ring"></div> : <CheckCircle2 size={24} color="#818cf8" />}
+              <div className="ci-text">
+                <strong>Audio Waveform</strong>
+                <span>{isChecking ? "Syncing microphone..." : "Input channel synchronized"}</span>
+              </div>
+            </div>
+
+            <div className="check-item">
+              <ShieldCheck size={24} color="#818cf8" />
+              <div className="ci-text">
+                <strong>Secure Session</strong>
+                <span>End-to-end encryption enabled</span>
+              </div>
+            </div>
           </div>
 
-          <div className="action-area slide-in" style={{ animationDelay: '0.8s' }}>
-            {hasPermissions && !isChecking ? (
-              <button 
-                onClick={startActualInterview} 
-                className="btn-enter-studio"
-                disabled={!micOn} // Prevent entering if mic is explicitly muted
-              >
-                {micOn ? (
-                   <> ENTER STUDIO <ArrowRight size={18} /> </>
-                ) : (
-                   "UNMUTE TO ENTER"
-                )}
-              </button>
-            ) : (
-              <button disabled className="btn-loading">
-                 <div className="loader-ring small"></div> Checking Systems...
-              </button>
-            )}
-          </div>
+          <button 
+            className="btn-enter-studio" 
+            disabled={isChecking || !hasPermissions} 
+            onClick={startActualInterview}
+          >
+            {isChecking ? "VERIFYING..." : "INITIALIZE STUDIO"}
+            {!isChecking && <ArrowRight size={18} />}
+          </button>
         </div>
 
       </div>

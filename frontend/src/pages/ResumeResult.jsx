@@ -1,63 +1,48 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { api } from '../services/api';
 import { 
-  CheckCircle2, XCircle, ArrowRight, RefreshCw, 
-  Target, Sparkles, AlertTriangle, FileSearch 
+  CheckCircle2, ArrowRight, RefreshCw, 
+  Sparkles, AlertTriangle, FileSearch, Zap
 } from 'lucide-react';
 import Button from '../components/ui/Button';
-import InputField from '../components/forms/InputField';
 import '../styles/theme.css';
 import './ResumeResult.css';
 
 const ResumeResult = () => {
   const location = useLocation();
-  const [resumeId] = useState(location.state?.resume_id || null);
-  const [jobRole, setJobRole] = useState(location.state?.job_role || '');
   
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState(null);
+  // Extract the data passed from the Upload page
+  const results = location.state?.results || null;
+  const jobRole = location.state?.job_role || 'Target Role';
 
-  const handleScore = async (e) => {
-    e?.preventDefault();
-    if (!jobRole.trim()) return alert("Please enter a target role.");
-    
-    setLoading(true);
-    try {
-      const data = await api.scoreResume(resumeId, jobRole);
-      setResults(data);
-    } catch (error) {
-      alert("AI Analysis failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Dynamic UI Helper
+  // Dynamic UI Helper based on the 0-100 score
   const getScoreTier = (score) => {
     if (score >= 80) return { color: 'success', text: 'Highly Optimized', glow: 'glow-success' };
     if (score >= 60) return { color: 'warning', text: 'Needs Refinement', glow: 'glow-warning' };
     return { color: 'danger', text: 'Critical Gaps Detected', glow: 'glow-danger' };
   };
 
-  if (!resumeId) {
+  // If no data is present (e.g., direct URL access), show empty state
+  if (!results) {
     return (
       <div className="result-empty page-container fade-in-up">
         <FileSearch size={48} className="text-muted mb-4" />
-        <h1 className="empty-title">No Document Detected</h1>
-        <p className="empty-desc">Please upload a resume to begin the ATS analysis.</p>
-        <Link to="/resume/upload" className="btn-glow-primary mt-6">Upload Resume</Link>
+        <h1 className="empty-title">No Audit Data Found</h1>
+        <p className="empty-desc">Please upload your resume to generate an AI match report.</p>
+        <Link to="/resume/upload">
+          <Button variant="primary" className="mt-6">Go to Upload</Button>
+        </Link>
       </div>
     );
   }
 
-  const tier = results ? getScoreTier(results.score) : null;
+  const tier = getScoreTier(results.score);
 
   return (
     <div className="result-root page-container">
       
-      {/* Ambient Backgrounds */}
-      <div className={`ambient-glow-resume ${tier ? tier.glow : ''}`}></div>
+      {/* Ambient Background Glow based on score performance */}
+      <div className={`ambient-glow-resume ${tier.glow}`}></div>
       
       {/* HEADER */}
       <div className="result-header fade-in-up">
@@ -65,140 +50,91 @@ const ResumeResult = () => {
             <Sparkles size={14} className="text-indigo" />
             <span>AI ATS DIAGNOSTIC</span>
         </div>
-        <h1 className="result-title">Resume Audit Report</h1>
+        <h1 className="result-title">Audit Report: {jobRole}</h1>
       </div>
 
-      {/* INPUT SECTION (Pre-Scan) */}
-      {!results && !loading && (
-        <div className="result-setup fade-in-up delay-200">
-          <Card className="glass-panel setup-panel">
-            <div className="setup-icon-wrapper">
-              <Target size={24} className="text-indigo" />
-            </div>
-            <h3 className="panel-heading text-center">Define Target Parameters</h3>
-            <p className="panel-sub text-center mb-6">Enter the specific job title you are applying for to calibrate the ATS parser.</p>
-            
-            <form onSubmit={handleScore} className="setup-form">
-              <InputField 
-                label="TARGET JOB TITLE"
-                name="jobRole"
-                value={jobRole}
-                onChange={(e) => setJobRole(e.target.value)}
-                placeholder="E.g. Senior Full Stack Engineer"
-              />
-              <Button type="submit" variant="primary" className="btn-glow-submit w-full mt-6">
-                RUN AI DIAGNOSTIC <ArrowRight size={16} />
-              </Button>
-            </form>
-          </Card>
-        </div>
-      )}
-
-      {/* LOADING STATE */}
-      {loading && !results && (
-        <div className="ai-scanning-container fade-in-up">
-          <div className="scanner-visual">
-            <FileSearch size={40} className="text-indigo pulse-icon" />
-            <div className="scan-line"></div>
+      <div className="report-grid fade-in-up delay-100">
+        
+        {/* SCORE SECTION (Left Column) */}
+        <div className={`glass-panel score-section border-${tier.color}`}>
+          <div className="score-header">
+            <h3 className="panel-heading">Match Accuracy</h3>
           </div>
-          <h3 className="scan-title">Analyzing Document Topology...</h3>
-          <p className="scan-sub">Cross-referencing entity graphs with "{jobRole}" requirements.</p>
-        </div>
-      )}
-
-      {/* RESULTS DISPLAY */}
-      {results && (
-        <div className="report-grid fade-in-up">
           
-          {/* Main Score (Left Col) */}
-          <div className={`glass-panel score-section border-${tier.color}`}>
-            <div className="score-header">
-              <h3 className="panel-heading">Overall Match</h3>
-            </div>
-            
-            <div className="score-circle-wrapper">
-              <div className={`score-circle text-${tier.color} shadow-${tier.color}`}>
-                <span className="score-huge">{results.score}</span>
-                <span className="score-max">/100</span>
-              </div>
-            </div>
-            
-            <div className={`verdict-badge bg-${tier.color} text-${tier.color}`}>
-              {tier.text}
-            </div>
-
-            <div className="score-actions">
-              <Button variant="secondary" onClick={() => setResults(null)} className="btn-glass-outline w-full">
-                <RefreshCw size={14} /> NEW SCAN
-              </Button>
+          <div className="score-circle-wrapper">
+            <div className={`score-circle text-${tier.color}`}>
+              <span className="score-huge">{results.score}</span>
+              <span className="score-max">/100</span>
             </div>
           </div>
+          
+          <div className={`verdict-badge bg-${tier.color}`}>
+            {tier.text}
+          </div>
 
-          {/* Details Grid (Right Col) */}
-          <div className="details-grid">
-            
-            {/* Missing Keywords */}
-            <Card className="glass-panel">
-              <div className="panel-header-flex">
-                <AlertTriangle size={18} className="text-danger" />
-                <h3 className="panel-heading">Missing Keywords</h3>
-              </div>
-              <div className="tags-container">
-                {results.missing_keywords?.length > 0 ? (
-                  results.missing_keywords.map((kw, i) => (
-                    <span key={i} className="danger-pill">{kw}</span>
-                  ))
-                ) : (
-                  <span className="success-text">No critical gaps detected.</span>
-                )}
-              </div>
-            </Card>
+          <p className="score-meta mt-4 text-center text-xs text-muted">
+            Analyzed via Ollama Deep-Parse Engine
+          </p>
 
-            {/* Strengths */}
-            <Card className="glass-panel">
-              <div className="panel-header-flex">
-                <CheckCircle2 size={18} className="text-success" />
-                <h3 className="panel-heading">Detected Strengths</h3>
-              </div>
-              <ul className="list-glass success">
-                {results.strengths?.map((s, i) => (
-                  <li key={i}><CheckCircle2 size={16} /> <span>{s}</span></li>
-                ))}
-              </ul>
-            </Card>
-
-            {/* Weaknesses */}
-            <Card className="glass-panel">
-              <div className="panel-header-flex">
-                <XCircle size={18} className="text-danger" />
-                <h3 className="panel-heading">Critical Issues</h3>
-              </div>
-              <ul className="list-glass danger">
-                {results.weaknesses?.map((w, i) => (
-                  <li key={i}><XCircle size={16} /> <span>{w}</span></li>
-                ))}
-              </ul>
-            </Card>
-
-            {/* Suggestions */}
-            <Card className="glass-panel full-width">
-              <div className="panel-header-flex">
-                <Sparkles size={18} className="text-indigo" />
-                <h3 className="panel-heading">Optimization Strategy</h3>
-              </div>
-              <div className="suggestions-list">
-                {results.suggestions?.map((s, i) => (
-                  <div key={i} className="suggestion-row">
-                    <ArrowRight size={16} className="text-muted" />
-                    <span>{s}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
+          <div className="score-actions mt-6">
+            <Link to="/resume/upload" className="w-full">
+              <Button variant="secondary" className="btn-glass-outline w-full">
+                <RefreshCw size={14} /> RE-SCAN RESUME
+              </Button>
+            </Link>
           </div>
         </div>
-      )}
+
+        {/* DETAILS SECTION (Right Column) */}
+        <div className="details-grid">
+          
+          {/* AI Summary Card */}
+          <div className="glass-panel full-width">
+            <div className="panel-header-flex">
+              <Zap size={18} className="text-indigo" />
+              <h3 className="panel-heading">Executive Summary</h3>
+            </div>
+            <p className="summary-text text-muted">
+              {results.summary}
+            </p>
+          </div>
+
+          {/* Improvement Tips Card */}
+          <div className="glass-panel full-width">
+            <div className="panel-header-flex">
+              <AlertTriangle size={18} className="text-warning" />
+              <h3 className="panel-heading">Optimization Strategy</h3>
+            </div>
+            <div className="suggestions-list">
+              {results.improvement_tips?.map((tip, i) => (
+                <div key={i} className="suggestion-row">
+                  <ArrowRight size={16} className="text-indigo shrink-0" />
+                  <span>{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA: Next Step - Interview */}
+          <div className="glass-panel full-width highlight-panel">
+             <div className="cta-content-flex">
+                <div className="cta-text">
+                  <h3 className="panel-heading">Next Phase: Simulation</h3>
+                  <p className="text-muted text-sm">Practice an AI interview based on your parsed resume content.</p>
+                </div>
+                <Link 
+                  to="/interview/setup" 
+                  state={{ resume_text: results.extracted_text }}
+                >
+                  <Button variant="primary" className="btn-glow-indigo">
+                    Start Mock Interview <CheckCircle2 size={16} className="ml-2" />
+                  </Button>
+                </Link>
+             </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   );
 };
